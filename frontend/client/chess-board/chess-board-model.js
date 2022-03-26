@@ -85,6 +85,7 @@ export const chessBoardModel = {
 		const castlingRights = fenArray[2].split("");
 		const enPassantSquare = fenArray[3].split("");
 		const kingFirstMove = fenArray[4].split("");
+		const kingCheckHistory = fenArray[5].split("");
 		const linearArray = [];
 
 		// Get char positions
@@ -121,6 +122,12 @@ export const chessBoardModel = {
 							if (kingFirstMove.includes("K")) {
 								storage.board[i][j].firstMove = true;
 							}
+							if (kingCheckHistory.includes("K")) {
+								storage.board[i][j].hasBeenChecked = true;
+							} else {
+								storage.board[i][j].hasBeenChecked = false;
+							}
+							storage.board[i][j].inCheck = false;
 						}
 					} else if (char === char.toLowerCase()) {
 						storage.board[i][j].pieceSide = "B";
@@ -134,6 +141,12 @@ export const chessBoardModel = {
 							if (kingFirstMove.includes("k")) {
 								storage.board[i][j].firstMove = true;
 							}
+							if (kingCheckHistory.includes("k")) {
+								storage.board[i][j].hasBeenChecked = true;
+							} else {
+								storage.board[i][j].hasBeenChecked = false;
+							}
+							storage.board[i][j].inCheck = false;
 						}
 					}
 				} else {
@@ -168,6 +181,8 @@ export const chessBoardModel = {
 		let blackQueenSideCastle = false;
 		let whiteKingFirstMove = false;
 		let blackKingFirstMove = false;
+		let whiteKingHasBeenChecked = false;
+		let blackKingHasBeenChecked = false;
 
 		for (let i = 0; i < 8; i++) {
 			let counter = 0;
@@ -191,8 +206,11 @@ export const chessBoardModel = {
 						) {
 							blackKingFirstMove = "k";
 						}
-						if (storage.board[i][j].pieceId === "K") {
-							storage.king_pos["B"] = [i, j];
+						if (
+							storage.board[i][j].pieceId === "K" &&
+							storage.board[i][j].hasBeenChecked
+						) {
+							blackKingHasBeenChecked = "k";
 						}
 					} else {
 						fen_array.push(storage.board[i][j].pieceId);
@@ -208,8 +226,11 @@ export const chessBoardModel = {
 						) {
 							whiteKingFirstMove = "K";
 						}
-						if (storage.board[i][j].pieceId === "K") {
-							storage.king_pos["W"] = [i, j];
+						if (
+							storage.board[i][j].pieceId === "K" &&
+							storage.board[i][j].hasBeenChecked
+						) {
+							whiteKingHasBeenChecked = "K";
 						}
 					}
 				} else {
@@ -249,6 +270,14 @@ export const chessBoardModel = {
 						blackKingFirstMove ? blackKingFirstMove : "",
 				  ].join("");
 
+		const kingCheckHistory =
+			!whiteKingHasBeenChecked && !blackKingHasBeenChecked
+				? "-"
+				: [
+						whiteKingHasBeenChecked ? whiteKingHasBeenChecked : "",
+						blackKingHasBeenChecked ? blackKingHasBeenChecked : "",
+				  ].join("");
+
 		const otherChars = [
 			" ",
 			player_turn.toLowerCase(),
@@ -258,7 +287,10 @@ export const chessBoardModel = {
 			en_passant,
 			" ",
 			kingFirstMove,
+			" ",
+			kingCheckHistory,
 		];
+
 		const fenString = fen_array.concat(otherChars).join("");
 		return fenString;
 	},

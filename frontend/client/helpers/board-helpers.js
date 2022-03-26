@@ -11,6 +11,24 @@ export const boardHelpers = {
 		storage.board[i][j].queenSideCastle = false;
 		storage.board[i][j].kingSideCastle = false;
 	},
+	getKingPos: (side) => {
+		let coord = null;
+
+		for (let i = 0; i < 8; i++) {
+			for (let j = 0; j < 8; j++) {
+				if (
+					storage.board[i][j].pieceId === "K" &&
+					storage.board[i][j].pieceSide === side
+				) {
+					coord = [i, j];
+					j = 8;
+					i = 8;
+				}
+			}
+		}
+
+		return coord;
+	},
 };
 
 export default boardHelpers;

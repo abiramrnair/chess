@@ -4,9 +4,9 @@ export const storage = {
 		W: "B",
 		B: "W",
 	},
-	king_pos: {
-		W: [7, 4],
-		B: [0, 4],
+	king_checked: {
+		W: false,
+		B: false,
 	},
 	board: [],
 	moves: {},

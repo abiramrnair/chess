@@ -1,4 +1,5 @@
 import boardSquareModel from "../board-square/board-square-model";
+import boardHelpers from "../helpers/board-helpers";
 import storage from "../storage/storage";
 const _ = require("lodash");
 
@@ -78,6 +79,7 @@ export const moveGenerator = {
 		if (
 			i + 2 * z >= 0 &&
 			i + 2 * z < 8 &&
+			!storage.board[i + 1 * z][j].pieceId &&
 			!storage.board[i + 2 * z][j].pieceId &&
 			((storage.board[i][j].pieceSide === "W" && i === 6) ||
 				(storage.board[i][j].pieceSide === "B" && i === 1))
@@ -422,7 +424,7 @@ export const moveGenerator = {
 		) {
 			storage.moves[JSON.stringify([i, j])].push([i - 1, j - 1]);
 		}
-		if (storage.board[i][j].firstMove) {
+		if (storage.board[i][j].firstMove && !storage.board[i][j].hasBeenChecked) {
 			if (storage.board[i][j].pieceSide === "W" && i === 7 && j === 4) {
 				if (
 					!storage.board[i][j + 1].pieceId &&
@@ -470,6 +472,28 @@ export const moveGenerator = {
 			delete storage.moves[JSON.stringify([i, j])];
 		}
 	},
+	filterIllegalCastleMoves: (startingCoord, moves) => {
+		const stringMoves = moves.map((move) => JSON.stringify(move));
+		if (startingCoord === JSON.stringify([0, 4])) {
+			if (stringMoves.includes("[0,2]") && !stringMoves.includes("[0,3]")) {
+				const index = stringMoves.findIndex((elem) => elem === "[0,2]");
+				moves[index] = null;
+			}
+			if (stringMoves.includes("[0,6]") && !stringMoves.includes("[0,5]")) {
+				const index = stringMoves.findIndex((elem) => elem === "[0,6]");
+				moves[index] = null;
+			}
+		} else if (startingCoord === JSON.stringify([7, 4])) {
+			if (stringMoves.includes("[7,2]") && !stringMoves.includes("[7,3]")) {
+				const index = stringMoves.findIndex((elem) => elem === "[7,2]");
+				moves[index] = null;
+			}
+			if (stringMoves.includes("[7,6]") && !stringMoves.includes("[7,5]")) {
+				const index = stringMoves.findIndex((elem) => elem === "[7,6]");
+				moves[index] = null;
+			}
+		}
+	},
 	filterIllegalMoves: () => {
 		const allyKeys = Object.keys(storage.moves);
 		const allyMoves = [];
@@ -491,14 +515,12 @@ export const moveGenerator = {
 				boardSquareModel.movePiece(startingCoord, moves[j]);
 				moveGenerator.generateAllPossibleMoves();
 				const enemyKeys = Object.keys(storage.moves);
-
 				for (let k = 0; k < enemyKeys.length; k++) {
 					const enemyMoves = storage.moves[enemyKeys[k]];
-
 					for (let m = 0; m < enemyMoves.length; m++) {
 						if (
 							JSON.stringify(enemyMoves[m]) ===
-							JSON.stringify(storage.king_pos[ally_side])
+							JSON.stringify(boardHelpers.getKingPos(ally_side))
 						) {
 							moves[j] = null;
 						}
@@ -512,11 +534,69 @@ export const moveGenerator = {
 		for (let i = 0; i < allyMoves.length; i++) {
 			const startingCoord = JSON.stringify(allyMoves[i].startingCoord);
 			storage.moves[startingCoord] = allyMoves[i].moves;
+			if (
+				startingCoord === JSON.stringify(boardHelpers.getKingPos(ally_side))
+			) {
+				moveGenerator.filterIllegalCastleMoves(
+					startingCoord,
+					storage.moves[startingCoord]
+				);
+			}
+		}
+		for (let i = 0; i < allyKeys.length; i++) {
+			const moves = [];
+			for (let j = 0; j < storage.moves[allyKeys[i]].length; j++) {
+				if (storage.moves[allyKeys[i]][j]) {
+					moves.push(storage.moves[allyKeys[i]][j]);
+				}
+			}
+			if (moves.length) {
+				storage.moves[allyKeys[i]] = moves;
+			} else {
+				delete storage.moves[allyKeys[i]];
+			}
+		}
+	},
+	determineEndGameConditions: () => {
+		const allyMoves = _.cloneDeep(storage.moves);
+		const allySide = storage.player_turn;
+		const kingPos = boardHelpers.getKingPos(allySide);
+
+		let inCheck = false;
+		storage.player_turn = storage.opposite_player[storage.player_turn];
+		moveGenerator.generateAllPossibleMoves();
+
+		const enemyMoves = _.cloneDeep(storage.moves);
+		const enemyKeys = Object.keys(enemyMoves);
+
+		for (let i = 0; i < enemyKeys.length; i++) {
+			const moves = enemyMoves[enemyKeys[i]];
+			for (let j = 0; j < moves.length; j++) {
+				if (JSON.stringify(moves[j]) === JSON.stringify(kingPos)) {
+					storage.board[kingPos[0]][kingPos[1]].inCheck = true;
+					storage.board[kingPos[0]][kingPos[1]].hasBeenChecked = true;
+					inCheck = true;
+					j = moves.length;
+					i = enemyKeys.length;
+				}
+			}
+		}
+
+		if (Object.keys(allyMoves).length === 0 && inCheck) {
+			console.log("CHECKMATE");
+			storage.moves = [];
+		} else if (Object.keys(allyMoves).length === 0 && !inCheck) {
+			console.log("STALEMATE");
+			storage.moves = [];
+		} else {
+			storage.moves = allyMoves;
+			storage.player_turn = storage.opposite_player[storage.player_turn];
 		}
 	},
 	getMoves: () => {
 		moveGenerator.generateAllPossibleMoves();
 		moveGenerator.filterIllegalMoves();
+		moveGenerator.determineEndGameConditions();
 	},
 };
 

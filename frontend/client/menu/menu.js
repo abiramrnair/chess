@@ -13,7 +13,7 @@ export const menu = {
 				{
 					onclick: () => {
 						boardSquareModel.undoMovePiece();
-						moveGenerator.generateAllPossibleMoves();
+						moveGenerator.getMoves();
 						storage.selected_square_coord = null;
 						m.redraw();
 					},

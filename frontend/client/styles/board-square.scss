@@ -20,6 +20,14 @@
 				border-radius: 50%;
 				opacity: 0.5;
 			}
+			&.in-check {
+				position: absolute;
+				width: 80px;
+				height: 80px;
+				border-radius: 50%;
+				opacity: 0.5;
+				border: 5px solid red;
+			}
 		}
 	}
 

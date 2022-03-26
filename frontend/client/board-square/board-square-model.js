@@ -41,7 +41,10 @@ export const boardSquareModel = {
 		) {
 			storage.selected_square_coord = null;
 			storage.legal_squares = [];
-		} else if (storage.board[i][j].pieceSide === storage.player_turn) {
+		} else if (
+			storage.player_turn &&
+			storage.board[i][j].pieceSide === storage.player_turn
+		) {
 			storage.selected_square_coord = [i, j];
 			storage.legal_squares = [];
 			const moves = storage.moves[JSON.stringify([i, j])];
@@ -65,8 +68,6 @@ export const boardSquareModel = {
 		const castleRow = storage.player_turn === "W" ? 7 : 0;
 
 		if (storage.board[prevCoord[0]][prevCoord[1]].pieceId === "K") {
-			storage.king_pos[storage.board[prevCoord[0]][prevCoord[1]].pieceSide] =
-				nextCoord;
 			if (Math.abs(nextCoord[1] - prevCoord[1]) === 2) {
 				if (JSON.stringify(nextCoord) === JSON.stringify([castleRow, 6])) {
 					storage.board[castleRow][7].pieceId = null;
