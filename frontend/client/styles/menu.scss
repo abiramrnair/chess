@@ -1,0 +1,26 @@
+#app-container {
+	.menu-container {
+		display: flex;
+		justify-content: center;
+	}
+	.action-button {
+		border-radius: 4px;
+		border: none;
+		transition: 0.3s;
+
+		&:hover:not(:disabled) {
+			cursor: pointer;
+			background: #008b8b;
+			transition: 0.3s;
+		}
+
+		img {
+			height: 30px;
+			width: auto;
+		}
+
+		&:disabled {
+			cursor: not-allowed;
+		}
+	}
+}

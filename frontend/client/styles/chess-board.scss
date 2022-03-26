@@ -1,0 +1,10 @@
+#app-container {
+	.chess-board-container {
+		height: fit-content;
+		width: fit-content;
+		border: 7px solid black;
+	}
+	.chess-board-row {
+		display: flex;
+	}
+}
