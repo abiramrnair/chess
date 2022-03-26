@@ -473,9 +473,46 @@ export const moveGenerator = {
 	filterIllegalMoves: () => {
 		const allyKeys = Object.keys(storage.moves);
 		const allyMoves = [];
-		const allySide = storage.player_turn;
+		const ally_side = storage.player_turn;
 
-		console.log(storage.moves);
+		for (let i = 0; i < allyKeys.length; i++) {
+			const startingCoord = JSON.parse(allyKeys[i]);
+			const moves = storage.moves[allyKeys[i]];
+			if (moves.length) {
+				allyMoves.push({ startingCoord, moves });
+			}
+		}
+
+		for (let i = 0; i < allyMoves.length; i++) {
+			const startingCoord = allyMoves[i].startingCoord;
+			const moves = allyMoves[i].moves;
+
+			for (let j = 0; j < moves.length; j++) {
+				boardSquareModel.movePiece(startingCoord, moves[j]);
+				moveGenerator.generateAllPossibleMoves();
+				const enemyKeys = Object.keys(storage.moves);
+
+				for (let k = 0; k < enemyKeys.length; k++) {
+					const enemyMoves = storage.moves[enemyKeys[k]];
+
+					for (let m = 0; m < enemyMoves.length; m++) {
+						if (
+							JSON.stringify(enemyMoves[m]) ===
+							JSON.stringify(storage.king_pos[ally_side])
+						) {
+							moves[j] = null;
+						}
+					}
+				}
+				boardSquareModel.undoMovePiece();
+				moveGenerator.generateAllPossibleMoves();
+			}
+		}
+
+		for (let i = 0; i < allyMoves.length; i++) {
+			const startingCoord = JSON.stringify(allyMoves[i].startingCoord);
+			storage.moves[startingCoord] = allyMoves[i].moves;
+		}
 	},
 	getMoves: () => {
 		moveGenerator.generateAllPossibleMoves();

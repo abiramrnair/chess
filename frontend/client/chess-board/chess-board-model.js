@@ -191,6 +191,9 @@ export const chessBoardModel = {
 						) {
 							blackKingFirstMove = "k";
 						}
+						if (storage.board[i][j].pieceId === "K") {
+							storage.king_pos["B"] = [i, j];
+						}
 					} else {
 						fen_array.push(storage.board[i][j].pieceId);
 						if (storage.board[i][j].kingSideCastle) {
@@ -204,6 +207,9 @@ export const chessBoardModel = {
 							storage.board[i][j].firstMove
 						) {
 							whiteKingFirstMove = "K";
+						}
+						if (storage.board[i][j].pieceId === "K") {
+							storage.king_pos["W"] = [i, j];
 						}
 					}
 				} else {

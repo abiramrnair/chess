@@ -87,7 +87,10 @@ export const boardSquareModel = {
 			}
 		}
 
-		if (storage.board[nextCoord[0]][nextCoord[1]].enPassant) {
+		if (
+			storage.board[prevCoord[0]][prevCoord[1]].pieceId === "P" &&
+			storage.board[nextCoord[0]][nextCoord[1]].enPassant
+		) {
 			storage.board[nextCoord[0] + z][nextCoord[1]].pieceId = null;
 			storage.board[nextCoord[0] + z][nextCoord[1]].pieceSide = null;
 			storage.board[nextCoord[0] + z][nextCoord[1]].coord = [
