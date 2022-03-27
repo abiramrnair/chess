@@ -597,6 +597,27 @@ export const moveGenerator = {
 		moveGenerator.generateAllPossibleMoves();
 		moveGenerator.filterIllegalMoves();
 		moveGenerator.determineEndGameConditions();
+		return storage.moves;
+	},
+	moveGenerationTest: (depth) => {
+		if (depth === 0) {
+			return 1;
+		}
+		const moveSet = _.cloneDeep(moveGenerator.getMoves());
+		const moveKeys = Object.keys(moveSet);
+		let numPositions = 0;
+
+		for (let i = 0; i < moveKeys.length; i++) {
+			const startingCoord = JSON.parse(moveKeys[i]);
+			const moves = moveSet[moveKeys[i]];
+			for (let j = 0; j < moves.length; j++) {
+				boardSquareModel.movePiece(startingCoord, moves[j]);
+				numPositions += moveGenerator.moveGenerationTest(depth - 1);
+				boardSquareModel.undoMovePiece();
+			}
+		}
+
+		return numPositions;
 	},
 };
 
