@@ -1,4 +1,5 @@
 import m from "mithril";
+import moveGenerator from "../logic/move-generator";
 import storage from "../storage/storage";
 import boardSquareModel from "./board-square-model";
 
@@ -17,6 +18,10 @@ export const boardSquare = {
 		const legalSquare = storage.legal_squares.includes(
 			JSON.stringify([squareId[0], squareId[1]])
 		);
+		const isPromotionOptions =
+			JSON.stringify(squareInfo.coord) ===
+			JSON.stringify(storage.promotion_coord);
+
 		return m(
 			`div#${squareId[0]}-${squareId[1]}.board-square${
 				imgLink ? ".clickable" : ""
@@ -27,18 +32,41 @@ export const boardSquare = {
 					m.redraw();
 				},
 			},
-			[
-				imgLink &&
-					m("img", {
-						src: imgLink,
-					}),
-				m(
-					`div.indicator${legalSquare ? ".legal-square" : ""}${
-						inCheck ? ".in-check" : ""
-					}`
-				),
-			]
+			!isPromotionOptions
+				? [
+						imgLink &&
+							m("img", {
+								src: imgLink,
+							}),
+						m(
+							`div.indicator${legalSquare ? ".legal-square" : ""}${
+								inCheck ? ".in-check" : ""
+							}`
+						),
+				  ]
+				: boardSquare.generatePromotionOptions(squareId[0], squareId[1])
 		);
+	},
+	generatePromotionOptions: (i, j) => {
+		const coord = storage.selected_square_coord;
+		return m("div.promotion-square-options", [
+			storage.promotion_pieces.map((piece) => {
+				return m("img", {
+					src: boardSquareModel.getPromotionPieceImage(
+						coord[0],
+						coord[1],
+						piece
+					),
+					onclick: () => {
+						boardSquareModel.movePiece(coord, [i, j, piece]);
+						storage.promotion_coord = null;
+						storage.legal_squares = [];
+						storage.selected_square_coord = null;
+						moveGenerator.getMoves();
+					},
+				});
+			}),
+		]);
 	},
 };
 

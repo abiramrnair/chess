@@ -29,6 +29,22 @@
 				border: 5px solid red;
 			}
 		}
+
+		.promotion-square-options {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 15px;
+
+			img {
+				height: 35px;
+				width: auto;
+
+				&:hover {
+					transform: scale(1.1);
+				}
+			}
+		}
 	}
 
 	.chess-board-row {

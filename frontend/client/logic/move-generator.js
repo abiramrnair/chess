@@ -42,7 +42,20 @@ export const moveGenerator = {
 
 		// single square
 		if (i + z >= 0 && i + z < 8 && !storage.board[i + z][j].pieceId) {
-			storage.moves[JSON.stringify([i, j])].push([i + z, j]);
+			if (
+				(storage.board[i][j].pieceSide === "W" && i === 1) ||
+				(storage.board[i][j].pieceSide === "B" && i === 6)
+			) {
+				for (let p = 0; p < storage.promotion_pieces.length; p++) {
+					storage.moves[JSON.stringify([i, j])].push([
+						i + z,
+						j,
+						storage.promotion_pieces[p],
+					]);
+				}
+			} else {
+				storage.moves[JSON.stringify([i, j])].push([i + z, j]);
+			}
 		}
 
 		// Diagonal captures
@@ -51,7 +64,20 @@ export const moveGenerator = {
 				j + 1 < 8 &&
 				storage.board[i + z][j + 1].pieceSide === opposite_player
 			) {
-				storage.moves[JSON.stringify([i, j])].push([i + z, j + 1]);
+				if (
+					(storage.board[i][j].pieceSide === "W" && i === 1) ||
+					(storage.board[i][j].pieceSide === "B" && i === 6)
+				) {
+					for (let p = 0; p < storage.promotion_pieces.length; p++) {
+						storage.moves[JSON.stringify([i, j])].push([
+							i + z,
+							j + 1,
+							storage.promotion_pieces[p],
+						]);
+					}
+				} else {
+					storage.moves[JSON.stringify([i, j])].push([i + z, j + 1]);
+				}
 			}
 			if (
 				j + 1 < 8 &&
@@ -64,7 +90,20 @@ export const moveGenerator = {
 				j - 1 >= 0 &&
 				storage.board[i + z][j - 1].pieceSide === opposite_player
 			) {
-				storage.moves[JSON.stringify([i, j])].push([i + z, j - 1]);
+				if (
+					(storage.board[i][j].pieceSide === "W" && i === 1) ||
+					(storage.board[i][j].pieceSide === "B" && i === 6)
+				) {
+					for (let p = 0; p < storage.promotion_pieces.length; p++) {
+						storage.moves[JSON.stringify([i, j])].push([
+							i + z,
+							j - 1,
+							storage.promotion_pieces[p],
+						]);
+					}
+				} else {
+					storage.moves[JSON.stringify([i, j])].push([i + z, j - 1]);
+				}
 			}
 			if (
 				j - 1 >= 0 &&
@@ -519,7 +558,7 @@ export const moveGenerator = {
 					const enemyMoves = storage.moves[enemyKeys[k]];
 					for (let m = 0; m < enemyMoves.length; m++) {
 						if (
-							JSON.stringify(enemyMoves[m]) ===
+							JSON.stringify([enemyMoves[m][0], enemyMoves[m][1]]) ===
 							JSON.stringify(boardHelpers.getKingPos(ally_side))
 						) {
 							moves[j] = null;
@@ -569,41 +608,87 @@ export const moveGenerator = {
 		const enemyMoves = _.cloneDeep(storage.moves);
 		const enemyKeys = Object.keys(enemyMoves);
 
-		for (let i = 0; i < enemyKeys.length; i++) {
-			const moves = enemyMoves[enemyKeys[i]];
-			for (let j = 0; j < moves.length; j++) {
-				if (JSON.stringify(moves[j]) === JSON.stringify(kingPos)) {
-					storage.board[kingPos[0]][kingPos[1]].inCheck = true;
-					storage.board[kingPos[0]][kingPos[1]].hasBeenChecked = true;
-					inCheck = true;
-					j = moves.length;
-					i = enemyKeys.length;
+		if (
+			allyMoves[JSON.stringify(kingPos)] &&
+			allyMoves[JSON.stringify(kingPos)].length
+		) {
+			for (let i = 0; i < enemyKeys.length; i++) {
+				const moves = enemyMoves[enemyKeys[i]];
+				for (let j = 0; j < moves.length; j++) {
+					if (JSON.stringify(moves[j]) === JSON.stringify(kingPos)) {
+						storage.board[kingPos[0]][kingPos[1]].inCheck = true;
+						storage.board[kingPos[0]][kingPos[1]].hasBeenChecked = true;
+						inCheck = true;
+						const filterMoves = allyMoves[JSON.stringify(kingPos)].map((move) =>
+							JSON.stringify(move)
+						);
+						if (allySide === "W" && JSON.stringify(kingPos) === "[7,4]") {
+							const indexRight = filterMoves.findIndex(
+								(elem) => elem === "[7,6]"
+							);
+							if (indexRight !== -1) {
+								allyMoves[JSON.stringify(kingPos)][indexRight] = null;
+							}
+							const indexLeft = filterMoves.findIndex(
+								(elem) => elem === "[7,2]"
+							);
+							if (indexLeft !== -1) {
+								allyMoves[JSON.stringify(kingPos)][indexLeft] = null;
+							}
+						} else if (
+							allySide === "B" &&
+							JSON.stringify(kingPos) === "[0,4]"
+						) {
+							const indexRight = filterMoves.findIndex(
+								(elem) => elem === "[0,6]"
+							);
+							if (indexRight !== -1) {
+								allyMoves[JSON.stringify(kingPos)][indexRight] = null;
+							}
+							const indexLeft = filterMoves.findIndex(
+								(elem) => elem === "[0,2]"
+							);
+							if (indexLeft !== -1) {
+								allyMoves[JSON.stringify(kingPos)][indexLeft] = null;
+							}
+						}
+						j = moves.length;
+						i = enemyKeys.length;
+					}
 				}
 			}
+		} else {
+			inCheck = true;
 		}
 
 		if (Object.keys(allyMoves).length === 0 && inCheck) {
 			console.log("CHECKMATE");
+			storage.board[kingPos[0]][kingPos[1]].inCheck = true;
 			storage.moves = [];
+			storage.game_over = true;
 		} else if (Object.keys(allyMoves).length === 0 && !inCheck) {
 			console.log("STALEMATE");
 			storage.moves = [];
+			storage.game_over = true;
 		} else {
 			storage.moves = allyMoves;
 			storage.player_turn = storage.opposite_player[storage.player_turn];
 		}
 	},
 	getMoves: () => {
-		moveGenerator.generateAllPossibleMoves();
-		moveGenerator.filterIllegalMoves();
-		moveGenerator.determineEndGameConditions();
-		return storage.moves;
+		if (!storage.game_over) {
+			moveGenerator.generateAllPossibleMoves();
+			moveGenerator.filterIllegalMoves();
+			moveGenerator.determineEndGameConditions();
+			return storage.moves;
+		}
+		return [];
 	},
 	moveGenerationTest: (depth) => {
 		if (depth === 0) {
 			return 1;
 		}
-		const moveSet = _.cloneDeep(moveGenerator.getMoves());
+		const moveSet = moveGenerator.getMoves();
 		const moveKeys = Object.keys(moveSet);
 		let numPositions = 0;
 
@@ -611,12 +696,13 @@ export const moveGenerator = {
 			const startingCoord = JSON.parse(moveKeys[i]);
 			const moves = moveSet[moveKeys[i]];
 			for (let j = 0; j < moves.length; j++) {
-				boardSquareModel.movePiece(startingCoord, moves[j]);
-				numPositions += moveGenerator.moveGenerationTest(depth - 1);
-				boardSquareModel.undoMovePiece();
+				if (moves[j]) {
+					boardSquareModel.movePiece(startingCoord, moves[j]);
+					numPositions += moveGenerator.moveGenerationTest(depth - 1);
+					boardSquareModel.undoMovePiece();
+				}
 			}
 		}
-
 		return numPositions;
 	},
 };
