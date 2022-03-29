@@ -5,11 +5,11 @@
 - npm i
 - npm run dev
 
-### How to run tests
+### How to test
 - cd frontend
 - npm i
 - npm test
-- add new tests by following format for uploading FENs
+- add new move generation tests by following format for uploading FENs
 
 ### To-do
 - illegal move checking
