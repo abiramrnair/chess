@@ -86,6 +86,7 @@ export const chessBoardModel = {
 		const enPassantSquare = fenArray[3].split("");
 		const kingFirstMove = fenArray[4].split("");
 		const kingCheckHistory = fenArray[5].split("");
+		const rookFirstMove = fenArray[6].split("");
 		const linearArray = [];
 
 		// Get char positions
@@ -128,6 +129,22 @@ export const chessBoardModel = {
 								storage.board[i][j].hasBeenChecked = false;
 							}
 							storage.board[i][j].inCheck = false;
+						} else if (
+							i === 7 &&
+							j === 7 &&
+							storage.board[i][j].pieceId === "R"
+						) {
+							if (rookFirstMove.includes("R")) {
+								storage.board[i][j].firstMove = true;
+							}
+						} else if (
+							i === 7 &&
+							j === 0 &&
+							storage.board[i][j].pieceId === "R"
+						) {
+							if (rookFirstMove.includes("L")) {
+								storage.board[i][j].firstMove = true;
+							}
 						}
 					} else if (char === char.toLowerCase()) {
 						storage.board[i][j].pieceSide = "B";
@@ -147,6 +164,22 @@ export const chessBoardModel = {
 								storage.board[i][j].hasBeenChecked = false;
 							}
 							storage.board[i][j].inCheck = false;
+						} else if (
+							i === 0 &&
+							j === 7 &&
+							storage.board[i][j].pieceId === "R"
+						) {
+							if (rookFirstMove.includes("r")) {
+								storage.board[i][j].firstMove = true;
+							}
+						} else if (
+							i === 0 &&
+							j === 0 &&
+							storage.board[i][j].pieceId === "R"
+						) {
+							if (rookFirstMove.includes("r")) {
+								storage.board[i][j].firstMove = true;
+							}
 						}
 					}
 				} else {
@@ -183,6 +216,10 @@ export const chessBoardModel = {
 		let blackKingFirstMove = false;
 		let whiteKingHasBeenChecked = false;
 		let blackKingHasBeenChecked = false;
+		let whiteLeftRookFirstMove = false;
+		let whiteRightRookFirstMove = false;
+		let blackLeftRookFirstMove = false;
+		let blackRightRookFirstMove = false;
 
 		for (let i = 0; i < 8; i++) {
 			let counter = 0;
@@ -212,6 +249,22 @@ export const chessBoardModel = {
 						) {
 							blackKingHasBeenChecked = "k";
 						}
+						if (
+							i === 0 &&
+							j === 7 &&
+							storage.board[i][j].pieceId === "R" &&
+							storage.board[i][j].firstMove
+						) {
+							blackRightRookFirstMove = "r";
+						}
+						if (
+							i === 0 &&
+							j === 0 &&
+							storage.board[i][j].pieceId === "R" &&
+							storage.board[i][j].firstMove
+						) {
+							blackLeftRookFirstMove = "l";
+						}
 					} else {
 						fen_array.push(storage.board[i][j].pieceId);
 						if (storage.board[i][j].kingSideCastle) {
@@ -231,6 +284,22 @@ export const chessBoardModel = {
 							storage.board[i][j].hasBeenChecked
 						) {
 							whiteKingHasBeenChecked = "K";
+						}
+						if (
+							i === 7 &&
+							j === 0 &&
+							storage.board[i][j].pieceId === "R" &&
+							storage.board[i][j].firstMove
+						) {
+							whiteLeftRookFirstMove = "L";
+						}
+						if (
+							i === 7 &&
+							j === 7 &&
+							storage.board[i][j].pieceId === "R" &&
+							storage.board[i][j].firstMove
+						) {
+							whiteRightRookFirstMove = "R";
 						}
 					}
 				} else {
@@ -278,6 +347,19 @@ export const chessBoardModel = {
 						blackKingHasBeenChecked ? blackKingHasBeenChecked : "",
 				  ].join("");
 
+		const rookFirstMoves =
+			!whiteLeftRookFirstMove &&
+			!whiteRightRookFirstMove &&
+			!blackLeftRookFirstMove &&
+			!blackRightRookFirstMove
+				? "-"
+				: [
+						whiteLeftRookFirstMove ? whiteLeftRookFirstMove : "",
+						whiteRightRookFirstMove ? whiteRightRookFirstMove : "",
+						blackLeftRookFirstMove ? blackLeftRookFirstMove : "",
+						blackRightRookFirstMove ? blackRightRookFirstMove : "",
+				  ].join("");
+
 		const otherChars = [
 			" ",
 			player_turn.toLowerCase(),
@@ -289,6 +371,8 @@ export const chessBoardModel = {
 			kingFirstMove,
 			" ",
 			kingCheckHistory,
+			" ",
+			rookFirstMoves,
 		];
 
 		const fenString = fen_array.concat(otherChars).join("");

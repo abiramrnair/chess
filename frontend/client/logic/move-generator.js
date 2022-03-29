@@ -469,6 +469,7 @@ export const moveGenerator = {
 					!storage.board[i][j + 1].pieceId &&
 					!storage.board[i][j + 2].pieceId &&
 					storage.board[i][j + 3].pieceId === "R" &&
+					storage.board[i][j + 3].firstMove &&
 					storage.board[i][j + 3].pieceSide === storage.board[i][j].pieceSide
 				) {
 					storage.moves[JSON.stringify([i, j])].push([i, j + 2]);
@@ -479,6 +480,7 @@ export const moveGenerator = {
 					!storage.board[i][j - 2].pieceId &&
 					!storage.board[i][j - 3].pieceId &&
 					storage.board[i][j - 4].pieceId === "R" &&
+					storage.board[i][j - 4].firstMove &&
 					storage.board[i][j - 4].pieceSide === storage.board[i][j].pieceSide
 				) {
 					storage.moves[JSON.stringify([i, j])].push([i, j - 2]);
@@ -489,6 +491,7 @@ export const moveGenerator = {
 					!storage.board[i][j + 1].pieceId &&
 					!storage.board[i][j + 2].pieceId &&
 					storage.board[i][j + 3].pieceId === "R" &&
+					storage.board[i][j + 3].firstMove &&
 					storage.board[i][j + 3].pieceSide === storage.board[i][j].pieceSide
 				) {
 					storage.moves[JSON.stringify([i, j])].push([i, j + 2]);
@@ -499,6 +502,7 @@ export const moveGenerator = {
 					!storage.board[i][j - 2].pieceId &&
 					!storage.board[i][j - 3].pieceId &&
 					storage.board[i][j - 4].pieceId === "R" &&
+					storage.board[i][j - 4].firstMove &&
 					storage.board[i][j - 4].pieceSide === storage.board[i][j].pieceSide
 				) {
 					storage.moves[JSON.stringify([i, j])].push([i, j - 2]);

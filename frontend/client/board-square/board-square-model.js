@@ -190,6 +190,11 @@ export const boardSquareModel = {
 		}
 	},
 	undoMovePiece: () => {
+		if (storage.promotion_coord) {
+			storage.promotion_coord = null;
+			storage.selected_square_coord = null;
+			return;
+		}
 		storage.game_over = false;
 		const lastBoardState = storage.move_log.pop();
 		storage.legal_squares = [];
