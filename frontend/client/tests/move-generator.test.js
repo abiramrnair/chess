@@ -22,12 +22,12 @@ describe("moveGenerator", () => {
 
 		it("should generate correct number of moves for depth 3 from start of game position", () => {
 			const moves = moveGenerator.moveGenerationTest(3);
-			expect(moves).toEqual(testHelpers.START_OF_GAME_DEPTH_THREE_MOVES); // 400 nodes
+			expect(moves).toEqual(testHelpers.START_OF_GAME_DEPTH_THREE_MOVES); // 8902 nodes
 		});
 
 		it("should generate correct number of moves for depth 4 from start of game position", () => {
 			const moves = moveGenerator.moveGenerationTest(4);
-			expect(moves).toEqual(testHelpers.START_OF_GAME_DEPTH_FOUR_MOVES); // 400 nodes
+			expect(moves).toEqual(testHelpers.START_OF_GAME_DEPTH_FOUR_MOVES); // 197281 nodes
 		});
 	});
 
