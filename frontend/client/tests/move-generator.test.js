@@ -3,29 +3,29 @@ import chessBoardModel from "../chess-board/chess-board-model";
 import storage from "../storage/storage";
 import testHelpers from "../helpers/test-helpers";
 
-describe("moveGenerator", () => {
-	describe("moveGenerationTestStartingPosition", () => {
+describe("moveGenerationTest", () => {
+	describe("Initial Position Test", () => {
 		beforeEach(() => {
 			storage.board = [];
 			chessBoardModel.initBoardLayout();
 		});
 
-		it("should generate correct number of moves for depth 1 from start of game position", () => {
+		it("should generate 20 nodes for depth 1 from start of game position", () => {
 			const moves = moveGenerator.moveGenerationTest(1);
 			expect(moves).toEqual(testHelpers.START_OF_GAME_DEPTH_ONE_MOVES); // 20 nodes
 		});
 
-		it("should generate correct number of moves for depth 2 from start of game position", () => {
+		it("should generate 400 nodes for depth 2 from start of game position", () => {
 			const moves = moveGenerator.moveGenerationTest(2);
 			expect(moves).toEqual(testHelpers.START_OF_GAME_DEPTH_TWO_MOVES); // 400 nodes
 		});
 
-		it("should generate correct number of moves for depth 3 from start of game position", () => {
+		it("should generate 8902 nodes for depth 3 from start of game position", () => {
 			const moves = moveGenerator.moveGenerationTest(3);
 			expect(moves).toEqual(testHelpers.START_OF_GAME_DEPTH_THREE_MOVES); // 8902 nodes
 		});
 
-		it("should generate correct number of moves for depth 4 from start of game position", () => {
+		it("should generate 197281 nodes for depth 4 from start of game position", () => {
 			const moves = moveGenerator.moveGenerationTest(4);
 			expect(moves).toEqual(testHelpers.START_OF_GAME_DEPTH_FOUR_MOVES); // 197281 nodes
 		});
@@ -36,7 +36,7 @@ describe("moveGenerator", () => {
 			storage.board = [];
 			chessBoardModel.initBoardLayout();
 			chessBoardModel.convertFENStringToBoardPosition(
-				"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - - - -"
+				"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -"
 			);
 		});
 
@@ -61,7 +61,7 @@ describe("moveGenerator", () => {
 			storage.board = [];
 			chessBoardModel.initBoardLayout();
 			chessBoardModel.convertFENStringToBoardPosition(
-				"rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - - - -"
+				"rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8"
 			);
 		});
 

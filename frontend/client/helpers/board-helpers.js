@@ -1,33 +1,23 @@
 import storage from "../storage/storage";
 
 export const boardHelpers = {
-	resetBoardSquare: (i, j) => {
-		storage.board[i][j].pieceId = null;
-		storage.board[i][j].pieceSide = null;
-		storage.board[i][j].coord = [i, j];
-		storage.board[i][j].inCheck = false;
-		storage.board[i][j].firstMove = false;
-		storage.board[i][j].enPassant = false;
-		storage.board[i][j].queenSideCastle = false;
-		storage.board[i][j].kingSideCastle = false;
+	getCoordToLinearNum: (i, j) => {
+		return 8 * i + j;
 	},
-	getKingPos: (side) => {
-		let coord = null;
-
-		for (let i = 0; i < 8; i++) {
-			for (let j = 0; j < 8; j++) {
-				if (
-					storage.board[i][j].pieceId === "K" &&
-					storage.board[i][j].pieceSide === side
-				) {
-					coord = [i, j];
-					j = 8;
-					i = 8;
-				}
-			}
+	getLinearNumToCoord: (num) => {
+		return [Math.floor(num / 8), num % 8];
+	},
+	checkTwoCoordsEqual: (coord_one, coord_two) => {
+		return coord_one[0] === coord_two[0] && coord_one[1] === coord_two[1];
+	},
+	stringifyCoord: (coord) => {
+		if (coord) {
+			return `[${coord[0]},${coord[1]}]`;
 		}
-
-		return coord;
+	},
+	parseCoordString: (coord) => {
+		const coordArr = coord.split("");
+		return [Number(coordArr[1]), Number(coordArr[3])];
 	},
 };
 

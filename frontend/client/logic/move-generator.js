@@ -1,3 +1,4 @@
+import m from "mithril";
 import boardSquareModel from "../board-square/board-square-model";
 import boardHelpers from "../helpers/board-helpers";
 import storage from "../storage/storage";
@@ -5,9 +6,9 @@ const _ = require("lodash");
 
 export const moveGenerator = {
 	generateAllPossibleMoves: () => {
-		storage.moves = {};
 		for (let i = 0; i < 8; i++) {
 			for (let j = 0; j < 8; j++) {
+				storage.moves[boardHelpers.getCoordToLinearNum(i, j)] = [];
 				if (storage.board[i][j].pieceSide === storage.player_turn) {
 					switch (storage.board[i][j].pieceId) {
 						case "P":
@@ -34,27 +35,27 @@ export const moveGenerator = {
 				}
 			}
 		}
+		return storage.moves;
 	},
 	generateAllPawnMoves: (i, j) => {
-		storage.moves[JSON.stringify([i, j])] = [];
-		const z = storage.board[i][j].pieceSide === "W" ? -1 : 1;
-		const opposite_player = storage.board[i][j].pieceSide === "W" ? "B" : "W";
+		const z = storage.board[i][j].pieceSide === "w" ? -1 : 1;
+		const opposite_player = storage.board[i][j].pieceSide === "w" ? "b" : "w";
 
 		// single square
 		if (i + z >= 0 && i + z < 8 && !storage.board[i + z][j].pieceId) {
 			if (
-				(storage.board[i][j].pieceSide === "W" && i === 1) ||
-				(storage.board[i][j].pieceSide === "B" && i === 6)
+				(storage.board[i][j].pieceSide === "w" && i === 1) ||
+				(storage.board[i][j].pieceSide === "b" && i === 6)
 			) {
 				for (let p = 0; p < storage.promotion_pieces.length; p++) {
-					storage.moves[JSON.stringify([i, j])].push([
+					storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
 						i + z,
 						j,
 						storage.promotion_pieces[p],
 					]);
 				}
 			} else {
-				storage.moves[JSON.stringify([i, j])].push([i + z, j]);
+				storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([i + z, j]);
 			}
 		}
 
@@ -65,52 +66,70 @@ export const moveGenerator = {
 				storage.board[i + z][j + 1].pieceSide === opposite_player
 			) {
 				if (
-					(storage.board[i][j].pieceSide === "W" && i === 1) ||
-					(storage.board[i][j].pieceSide === "B" && i === 6)
+					(storage.board[i][j].pieceSide === "w" && i === 1) ||
+					(storage.board[i][j].pieceSide === "b" && i === 6)
 				) {
 					for (let p = 0; p < storage.promotion_pieces.length; p++) {
-						storage.moves[JSON.stringify([i, j])].push([
+						storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
 							i + z,
 							j + 1,
 							storage.promotion_pieces[p],
 						]);
 					}
 				} else {
-					storage.moves[JSON.stringify([i, j])].push([i + z, j + 1]);
+					storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+						i + z,
+						j + 1,
+					]);
 				}
 			}
 			if (
 				j + 1 < 8 &&
 				!storage.board[i + z][j + 1].pieceSide &&
-				storage.board[i + z][j + 1].enPassant
+				boardHelpers.checkTwoCoordsEqual(storage.en_passant_square, [
+					i + z,
+					j + 1,
+				])
 			) {
-				storage.moves[JSON.stringify([i, j])].push([i + z, j + 1]);
+				storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+					i + z,
+					j + 1,
+				]);
 			}
 			if (
 				j - 1 >= 0 &&
 				storage.board[i + z][j - 1].pieceSide === opposite_player
 			) {
 				if (
-					(storage.board[i][j].pieceSide === "W" && i === 1) ||
-					(storage.board[i][j].pieceSide === "B" && i === 6)
+					(storage.board[i][j].pieceSide === "w" && i === 1) ||
+					(storage.board[i][j].pieceSide === "b" && i === 6)
 				) {
 					for (let p = 0; p < storage.promotion_pieces.length; p++) {
-						storage.moves[JSON.stringify([i, j])].push([
+						storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
 							i + z,
 							j - 1,
 							storage.promotion_pieces[p],
 						]);
 					}
 				} else {
-					storage.moves[JSON.stringify([i, j])].push([i + z, j - 1]);
+					storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+						i + z,
+						j - 1,
+					]);
 				}
 			}
 			if (
 				j - 1 >= 0 &&
 				!storage.board[i + z][j - 1].pieceSide &&
-				storage.board[i + z][j - 1].enPassant
+				boardHelpers.checkTwoCoordsEqual(storage.en_passant_square, [
+					i + z,
+					j - 1,
+				])
 			) {
-				storage.moves[JSON.stringify([i, j])].push([i + z, j - 1]);
+				storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+					i + z,
+					j - 1,
+				]);
 			}
 		}
 
@@ -120,30 +139,24 @@ export const moveGenerator = {
 			i + 2 * z < 8 &&
 			!storage.board[i + 1 * z][j].pieceId &&
 			!storage.board[i + 2 * z][j].pieceId &&
-			((storage.board[i][j].pieceSide === "W" && i === 6) ||
-				(storage.board[i][j].pieceSide === "B" && i === 1))
+			((storage.board[i][j].pieceSide === "w" && i === 6) ||
+				(storage.board[i][j].pieceSide === "b" && i === 1))
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i + 2 * z, j]);
-		}
-
-		if (
-			!storage.moves[JSON.stringify([i, j])] &&
-			!storage.moves[JSON.stringify([i, j])].length
-		) {
-			delete storage.moves[JSON.stringify([i, j])];
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+				i + 2 * z,
+				j,
+			]);
 		}
 	},
 	generateAllRookMoves: (i, j) => {
-		storage.moves[JSON.stringify([i, j])] = [];
-
-		const opposite_player = storage.board[i][j].pieceSide === "W" ? "B" : "W";
+		const opposite_player = storage.board[i][j].pieceSide === "w" ? "b" : "w";
 		let z = 1;
 
 		while (
 			j + z < 8 &&
 			storage.board[i][j].pieceSide !== storage.board[i][j + z].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i, j + z]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([i, j + z]);
 			if (storage.board[i][j + z].pieceSide === opposite_player) {
 				break;
 			}
@@ -154,7 +167,7 @@ export const moveGenerator = {
 			j - z >= 0 &&
 			storage.board[i][j].pieceSide !== storage.board[i][j - z].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i, j - z]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([i, j - z]);
 			if (storage.board[i][j - z].pieceSide === opposite_player) {
 				break;
 			}
@@ -165,7 +178,7 @@ export const moveGenerator = {
 			i + z < 8 &&
 			storage.board[i][j].pieceSide !== storage.board[i + z][j].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i + z, j]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([i + z, j]);
 			if (storage.board[i + z][j].pieceSide === opposite_player) {
 				break;
 			}
@@ -176,84 +189,97 @@ export const moveGenerator = {
 			i - z >= 0 &&
 			storage.board[i][j].pieceSide !== storage.board[i - z][j].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i - z, j]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([i - z, j]);
 			if (storage.board[i - z][j].pieceSide === opposite_player) {
 				break;
 			}
 			z += 1;
 		}
-
-		if (!storage.moves[JSON.stringify([i, j])].length) {
-			delete storage.moves[JSON.stringify([i, j])];
-		}
 	},
 	generateAllKnightMoves: (i, j) => {
-		storage.moves[JSON.stringify([i, j])] = [];
-
 		if (
 			i + 1 < 8 &&
 			j + 2 < 8 &&
 			storage.board[i + 1][j + 2].pieceSide !== storage.board[i][j].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i + 1, j + 2]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+				i + 1,
+				j + 2,
+			]);
 		}
 		if (
 			i + 1 < 8 &&
 			j - 2 >= 0 &&
 			storage.board[i + 1][j - 2].pieceSide !== storage.board[i][j].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i + 1, j - 2]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+				i + 1,
+				j - 2,
+			]);
 		}
 		if (
 			i - 1 >= 0 &&
 			j + 2 < 8 &&
 			storage.board[i - 1][j + 2].pieceSide !== storage.board[i][j].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i - 1, j + 2]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+				i - 1,
+				j + 2,
+			]);
 		}
 		if (
 			i - 1 >= 0 &&
 			j - 2 >= 0 &&
 			storage.board[i - 1][j - 2].pieceSide !== storage.board[i][j].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i - 1, j - 2]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+				i - 1,
+				j - 2,
+			]);
 		}
 		if (
 			i + 2 < 8 &&
 			j + 1 < 8 &&
 			storage.board[i + 2][j + 1].pieceSide !== storage.board[i][j].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i + 2, j + 1]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+				i + 2,
+				j + 1,
+			]);
 		}
 		if (
 			i + 2 < 8 &&
 			j - 1 >= 0 &&
 			storage.board[i + 2][j - 1].pieceSide !== storage.board[i][j].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i + 2, j - 1]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+				i + 2,
+				j - 1,
+			]);
 		}
 		if (
 			i - 2 >= 0 &&
 			j + 1 < 8 &&
 			storage.board[i - 2][j + 1].pieceSide !== storage.board[i][j].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i - 2, j + 1]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+				i - 2,
+				j + 1,
+			]);
 		}
 		if (
 			i - 2 >= 0 &&
 			j - 1 >= 0 &&
 			storage.board[i - 2][j - 1].pieceSide !== storage.board[i][j].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i - 2, j - 1]);
-		}
-
-		if (!storage.moves[JSON.stringify([i, j])].length) {
-			delete storage.moves[JSON.stringify([i, j])];
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+				i - 2,
+				j - 1,
+			]);
 		}
 	},
 	generateAllBishopMoves: (i, j) => {
-		storage.moves[JSON.stringify([i, j])] = [];
-		const opposite_player = storage.board[i][j].pieceSide === "W" ? "B" : "W";
+		const opposite_player = storage.board[i][j].pieceSide === "w" ? "b" : "w";
 		let z = 1;
 
 		while (
@@ -261,7 +287,10 @@ export const moveGenerator = {
 			j + z < 8 &&
 			storage.board[i][j].pieceSide !== storage.board[i + z][j + z].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i + z, j + z]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+				i + z,
+				j + z,
+			]);
 			if (storage.board[i + z][j + z].pieceSide === opposite_player) {
 				break;
 			}
@@ -273,7 +302,10 @@ export const moveGenerator = {
 			j + z < 8 &&
 			storage.board[i][j].pieceSide !== storage.board[i - z][j + z].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i - z, j + z]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+				i - z,
+				j + z,
+			]);
 			if (storage.board[i - z][j + z].pieceSide === opposite_player) {
 				break;
 			}
@@ -285,7 +317,10 @@ export const moveGenerator = {
 			j - z >= 0 &&
 			storage.board[i][j].pieceSide !== storage.board[i + z][j - z].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i + z, j - z]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+				i + z,
+				j - z,
+			]);
 			if (storage.board[i + z][j - z].pieceSide === opposite_player) {
 				break;
 			}
@@ -297,414 +332,489 @@ export const moveGenerator = {
 			j - z >= 0 &&
 			storage.board[i][j].pieceSide !== storage.board[i - z][j - z].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i - z, j - z]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+				i - z,
+				j - z,
+			]);
 			if (storage.board[i - z][j - z].pieceSide === opposite_player) {
 				break;
 			}
 			z += 1;
-		}
-
-		if (!storage.moves[JSON.stringify([i, j])].length) {
-			delete storage.moves[JSON.stringify([i, j])];
 		}
 	},
-	generateAllQueenMoves: (i, j) => {
-		storage.moves[JSON.stringify([i, j])] = [];
-		const opposite_player = storage.board[i][j].pieceSide === "W" ? "B" : "W";
+	generateAllQueenMoves: (i, j, pieceSide) => {
+		const opposite_player = !pieceSide
+			? storage.board[i][j].pieceSide === "w"
+				? "b"
+				: "w"
+			: pieceSide;
 		let z = 1;
 
 		while (
 			i + z < 8 &&
 			j + z < 8 &&
-			storage.board[i][j].pieceSide !== storage.board[i + z][j + z].pieceSide
+			(pieceSide ||
+				storage.board[i][j].pieceSide !== storage.board[i + z][j + z].pieceSide)
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i + z, j + z]);
-			if (storage.board[i + z][j + z].pieceSide === opposite_player) {
-				break;
+			if (!pieceSide) {
+				storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+					i + z,
+					j + z,
+				]);
 			}
-			z += 1;
-		}
-		z = 1;
-		while (
-			i - z >= 0 &&
-			j + z < 8 &&
-			storage.board[i][j].pieceSide !== storage.board[i - z][j + z].pieceSide
-		) {
-			storage.moves[JSON.stringify([i, j])].push([i - z, j + z]);
-			if (storage.board[i - z][j + z].pieceSide === opposite_player) {
-				break;
-			}
-			z += 1;
-		}
-		z = 1;
-		while (
-			i + z < 8 &&
-			j - z >= 0 &&
-			storage.board[i][j].pieceSide !== storage.board[i + z][j - z].pieceSide
-		) {
-			storage.moves[JSON.stringify([i, j])].push([i + z, j - z]);
-			if (storage.board[i + z][j - z].pieceSide === opposite_player) {
-				break;
-			}
-			z += 1;
-		}
-		z = 1;
-		while (
-			i - z >= 0 &&
-			j - z >= 0 &&
-			storage.board[i][j].pieceSide !== storage.board[i - z][j - z].pieceSide
-		) {
-			storage.moves[JSON.stringify([i, j])].push([i - z, j - z]);
-			if (storage.board[i - z][j - z].pieceSide === opposite_player) {
-				break;
-			}
-			z += 1;
-		}
-		z = 1;
-		while (
-			j + z < 8 &&
-			storage.board[i][j].pieceSide !== storage.board[i][j + z].pieceSide
-		) {
-			storage.moves[JSON.stringify([i, j])].push([i, j + z]);
-			if (storage.board[i][j + z].pieceSide === opposite_player) {
-				break;
-			}
-			z += 1;
-		}
-		z = 1;
-		while (
-			j - z >= 0 &&
-			storage.board[i][j].pieceSide !== storage.board[i][j - z].pieceSide
-		) {
-			storage.moves[JSON.stringify([i, j])].push([i, j - z]);
-			if (storage.board[i][j - z].pieceSide === opposite_player) {
-				break;
-			}
-			z += 1;
-		}
-		z = 1;
-		while (
-			i + z < 8 &&
-			storage.board[i][j].pieceSide !== storage.board[i + z][j].pieceSide
-		) {
-			storage.moves[JSON.stringify([i, j])].push([i + z, j]);
-			if (storage.board[i + z][j].pieceSide === opposite_player) {
-				break;
-			}
-			z += 1;
-		}
-		z = 1;
-		while (
-			i - z >= 0 &&
-			storage.board[i][j].pieceSide !== storage.board[i - z][j].pieceSide
-		) {
-			storage.moves[JSON.stringify([i, j])].push([i - z, j]);
-			if (storage.board[i - z][j].pieceSide === opposite_player) {
-				break;
-			}
-			z += 1;
-		}
 
-		if (!storage.moves[JSON.stringify([i, j])].length) {
-			delete storage.moves[JSON.stringify([i, j])];
+			if (storage.board[i + z][j + z].pieceSide === opposite_player) {
+				if (pieceSide) {
+					storage.king_neighbours.push([i + z, j + z]);
+				}
+				break;
+			}
+			z += 1;
+		}
+		z = 1;
+		while (
+			i - z >= 0 &&
+			j + z < 8 &&
+			(pieceSide ||
+				storage.board[i][j].pieceSide !== storage.board[i - z][j + z].pieceSide)
+		) {
+			if (!pieceSide) {
+				storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+					i - z,
+					j + z,
+				]);
+			}
+
+			if (storage.board[i - z][j + z].pieceSide === opposite_player) {
+				if (pieceSide) {
+					storage.king_neighbours.push([i - z, j + z]);
+				}
+				break;
+			}
+			z += 1;
+		}
+		z = 1;
+		while (
+			i + z < 8 &&
+			j - z >= 0 &&
+			(pieceSide ||
+				storage.board[i][j].pieceSide !== storage.board[i + z][j - z].pieceSide)
+		) {
+			if (!pieceSide) {
+				storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+					i + z,
+					j - z,
+				]);
+			}
+
+			if (storage.board[i + z][j - z].pieceSide === opposite_player) {
+				if (pieceSide) {
+					storage.king_neighbours.push([i + z, j - z]);
+				}
+				break;
+			}
+			z += 1;
+		}
+		z = 1;
+		while (
+			i - z >= 0 &&
+			j - z >= 0 &&
+			(pieceSide ||
+				storage.board[i][j].pieceSide !== storage.board[i - z][j - z].pieceSide)
+		) {
+			if (!pieceSide) {
+				storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+					i - z,
+					j - z,
+				]);
+			}
+
+			if (storage.board[i - z][j - z].pieceSide === opposite_player) {
+				if (pieceSide) {
+					storage.king_neighbours.push([i - z, j - z]);
+				}
+				break;
+			}
+			z += 1;
+		}
+		z = 1;
+		while (
+			j + z < 8 &&
+			(pieceSide ||
+				storage.board[i][j].pieceSide !== storage.board[i][j + z].pieceSide)
+		) {
+			if (!pieceSide) {
+				storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([i, j + z]);
+			}
+
+			if (storage.board[i][j + z].pieceSide === opposite_player) {
+				if (pieceSide) {
+					storage.king_neighbours.push([i, j + z]);
+				}
+				break;
+			}
+			z += 1;
+		}
+		z = 1;
+		while (
+			j - z >= 0 &&
+			(pieceSide ||
+				storage.board[i][j].pieceSide !== storage.board[i][j - z].pieceSide)
+		) {
+			if (!pieceSide) {
+				storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([i, j - z]);
+			}
+
+			if (storage.board[i][j - z].pieceSide === opposite_player) {
+				if (pieceSide) {
+					storage.king_neighbours.push([i, j - z]);
+				}
+				break;
+			}
+			z += 1;
+		}
+		z = 1;
+		while (
+			i + z < 8 &&
+			(pieceSide ||
+				storage.board[i][j].pieceSide !== storage.board[i + z][j].pieceSide)
+		) {
+			if (!pieceSide) {
+				storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([i + z, j]);
+			}
+
+			if (storage.board[i + z][j].pieceSide === opposite_player) {
+				if (pieceSide) {
+					storage.king_neighbours.push([i + z, j]);
+				}
+				break;
+			}
+			z += 1;
+		}
+		z = 1;
+		while (
+			i - z >= 0 &&
+			(pieceSide ||
+				storage.board[i][j].pieceSide !== storage.board[i - z][j].pieceSide)
+		) {
+			if (!pieceSide) {
+				storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([i - z, j]);
+			}
+
+			if (storage.board[i - z][j].pieceSide === opposite_player) {
+				if (pieceSide) {
+					storage.king_neighbours.push([i - z, j]);
+				}
+				break;
+			}
+			z += 1;
 		}
 	},
 	generateAllKingMoves: (i, j) => {
-		storage.moves[JSON.stringify([i, j])] = [];
 		if (
 			j + 1 < 8 &&
 			storage.board[i][j].pieceSide !== storage.board[i][j + 1].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i, j + 1]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([i, j + 1]);
 		}
 		if (
 			j - 1 >= 0 &&
 			storage.board[i][j].pieceSide !== storage.board[i][j - 1].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i, j - 1]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([i, j - 1]);
 		}
 		if (
 			i + 1 < 8 &&
 			storage.board[i][j].pieceSide !== storage.board[i + 1][j].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i + 1, j]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([i + 1, j]);
 		}
 		if (
 			i - 1 >= 0 &&
 			storage.board[i][j].pieceSide !== storage.board[i - 1][j].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i - 1, j]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([i - 1, j]);
 		}
 		if (
 			i + 1 < 8 &&
 			j + 1 < 8 &&
 			storage.board[i][j].pieceSide !== storage.board[i + 1][j + 1].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i + 1, j + 1]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+				i + 1,
+				j + 1,
+			]);
 		}
 		if (
 			i - 1 >= 0 &&
 			j + 1 < 8 &&
 			storage.board[i][j].pieceSide !== storage.board[i - 1][j + 1].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i - 1, j + 1]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+				i - 1,
+				j + 1,
+			]);
 		}
 		if (
 			i + 1 < 8 &&
 			j - 1 >= 0 &&
 			storage.board[i][j].pieceSide !== storage.board[i + 1][j - 1].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i + 1, j - 1]);
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+				i + 1,
+				j - 1,
+			]);
 		}
 		if (
 			i - 1 >= 0 &&
 			j - 1 >= 0 &&
 			storage.board[i][j].pieceSide !== storage.board[i - 1][j - 1].pieceSide
 		) {
-			storage.moves[JSON.stringify([i, j])].push([i - 1, j - 1]);
-		}
-		if (storage.board[i][j].firstMove && !storage.board[i][j].hasBeenChecked) {
-			if (storage.board[i][j].pieceSide === "W" && i === 7 && j === 4) {
-				if (
-					!storage.board[i][j + 1].pieceId &&
-					!storage.board[i][j + 2].pieceId &&
-					storage.board[i][j + 3].pieceId === "R" &&
-					storage.board[i][j + 3].firstMove &&
-					storage.board[i][j + 3].pieceSide === storage.board[i][j].pieceSide
-				) {
-					storage.moves[JSON.stringify([i, j])].push([i, j + 2]);
-					storage.board[i][j].kingSideCastle = true;
-				}
-				if (
-					!storage.board[i][j - 1].pieceId &&
-					!storage.board[i][j - 2].pieceId &&
-					!storage.board[i][j - 3].pieceId &&
-					storage.board[i][j - 4].pieceId === "R" &&
-					storage.board[i][j - 4].firstMove &&
-					storage.board[i][j - 4].pieceSide === storage.board[i][j].pieceSide
-				) {
-					storage.moves[JSON.stringify([i, j])].push([i, j - 2]);
-					storage.board[i][j].queenSideCastle = true;
-				}
-			} else if (storage.board[i][j].pieceSide === "B" && i === 0 && j === 4) {
-				if (
-					!storage.board[i][j + 1].pieceId &&
-					!storage.board[i][j + 2].pieceId &&
-					storage.board[i][j + 3].pieceId === "R" &&
-					storage.board[i][j + 3].firstMove &&
-					storage.board[i][j + 3].pieceSide === storage.board[i][j].pieceSide
-				) {
-					storage.moves[JSON.stringify([i, j])].push([i, j + 2]);
-					storage.board[i][j].kingSideCastle = true;
-				}
-				if (
-					!storage.board[i][j - 1].pieceId &&
-					!storage.board[i][j - 2].pieceId &&
-					!storage.board[i][j - 3].pieceId &&
-					storage.board[i][j - 4].pieceId === "R" &&
-					storage.board[i][j - 4].firstMove &&
-					storage.board[i][j - 4].pieceSide === storage.board[i][j].pieceSide
-				) {
-					storage.moves[JSON.stringify([i, j])].push([i, j - 2]);
-					storage.board[i][j].queenSideCastle = true;
-				}
-			}
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].push([
+				i - 1,
+				j - 1,
+			]);
 		}
 
-		if (!storage.moves[JSON.stringify([i, j])].length) {
-			delete storage.moves[JSON.stringify([i, j])];
-		}
-	},
-	filterIllegalCastleMoves: (startingCoord, moves) => {
-		const stringMoves = moves.map((move) => JSON.stringify(move));
-		if (startingCoord === JSON.stringify([0, 4])) {
-			if (stringMoves.includes("[0,2]") && !stringMoves.includes("[0,3]")) {
-				const index = stringMoves.findIndex((elem) => elem === "[0,2]");
-				moves[index] = null;
-			}
-			if (stringMoves.includes("[0,6]") && !stringMoves.includes("[0,5]")) {
-				const index = stringMoves.findIndex((elem) => elem === "[0,6]");
-				moves[index] = null;
-			}
-		} else if (startingCoord === JSON.stringify([7, 4])) {
-			if (stringMoves.includes("[7,2]") && !stringMoves.includes("[7,3]")) {
-				const index = stringMoves.findIndex((elem) => elem === "[7,2]");
-				moves[index] = null;
-			}
-			if (stringMoves.includes("[7,6]") && !stringMoves.includes("[7,5]")) {
-				const index = stringMoves.findIndex((elem) => elem === "[7,6]");
-				moves[index] = null;
-			}
-		}
-	},
-	filterIllegalMoves: () => {
-		const allyKeys = Object.keys(storage.moves);
-		const allyMoves = [];
-		const ally_side = storage.player_turn;
-
-		for (let i = 0; i < allyKeys.length; i++) {
-			const startingCoord = JSON.parse(allyKeys[i]);
-			const moves = storage.moves[allyKeys[i]];
-			if (moves.length) {
-				allyMoves.push({ startingCoord, moves });
-			}
-		}
-
-		for (let i = 0; i < allyMoves.length; i++) {
-			const startingCoord = allyMoves[i].startingCoord;
-			const moves = allyMoves[i].moves;
-
-			for (let j = 0; j < moves.length; j++) {
-				boardSquareModel.movePiece(startingCoord, moves[j]);
-				moveGenerator.generateAllPossibleMoves();
-				const enemyKeys = Object.keys(storage.moves);
-				for (let k = 0; k < enemyKeys.length; k++) {
-					const enemyMoves = storage.moves[enemyKeys[k]];
-					for (let m = 0; m < enemyMoves.length; m++) {
-						if (
-							JSON.stringify([enemyMoves[m][0], enemyMoves[m][1]]) ===
-							JSON.stringify(boardHelpers.getKingPos(ally_side))
-						) {
-							moves[j] = null;
-						}
-					}
-				}
-				boardSquareModel.undoMovePiece();
-				moveGenerator.generateAllPossibleMoves();
-			}
-		}
-
-		for (let i = 0; i < allyMoves.length; i++) {
-			const startingCoord = JSON.stringify(allyMoves[i].startingCoord);
-			storage.moves[startingCoord] = allyMoves[i].moves;
+		if (!storage.board[i][j].inCheck) {
 			if (
-				startingCoord === JSON.stringify(boardHelpers.getKingPos(ally_side))
+				boardHelpers.checkTwoCoordsEqual([7, 4], [i, j]) &&
+				storage.board[i][j].firstMove
 			) {
-				moveGenerator.filterIllegalCastleMoves(
-					startingCoord,
-					storage.moves[startingCoord]
-				);
-			}
-		}
-		for (let i = 0; i < allyKeys.length; i++) {
-			const moves = [];
-			for (let j = 0; j < storage.moves[allyKeys[i]].length; j++) {
-				if (storage.moves[allyKeys[i]][j]) {
-					moves.push(storage.moves[allyKeys[i]][j]);
+				if (
+					!storage.board[7][5].pieceId &&
+					!storage.board[7][6].pieceId &&
+					storage.board[7][7].pieceId === "R" &&
+					storage.board[7][7].firstMove &&
+					storage.board[7][7].pieceSide === "w"
+				) {
+					storage.board[i][j].kingSideCastle = true;
+				} else {
+					storage.board[i][j].kingSideCastle = false;
 				}
-			}
-			if (moves.length) {
-				storage.moves[allyKeys[i]] = moves;
-			} else {
-				delete storage.moves[allyKeys[i]];
+				if (
+					!storage.board[7][3].pieceId &&
+					!storage.board[7][2].pieceId &&
+					!storage.board[7][1].pieceId &&
+					storage.board[7][0].pieceId === "R" &&
+					storage.board[7][0].firstMove &&
+					storage.board[7][0].pieceSide === "w"
+				) {
+					storage.board[i][j].queenSideCastle = true;
+				} else {
+					storage.board[i][j].queenSideCastle = false;
+				}
+			} else if (
+				boardHelpers.checkTwoCoordsEqual([0, 4], [i, j]) &&
+				storage.board[i][j].firstMove
+			) {
+				if (
+					!storage.board[0][5].pieceId &&
+					!storage.board[0][6].pieceId &&
+					storage.board[0][7].pieceId === "R" &&
+					storage.board[0][7].firstMove &&
+					storage.board[0][7].pieceSide === "b"
+				) {
+					storage.board[i][j].kingSideCastle = true;
+				} else {
+					storage.board[i][j].kingSideCastle = false;
+				}
+				if (
+					!storage.board[0][3].pieceId &&
+					!storage.board[0][2].pieceId &&
+					!storage.board[0][1].pieceId &&
+					storage.board[0][0].pieceId === "R" &&
+					storage.board[0][0].firstMove &&
+					storage.board[0][0].pieceSide === "b"
+				) {
+					storage.board[i][j].queenSideCastle = true;
+				} else {
+					storage.board[i][j].queenSideCastle = false;
+				}
 			}
 		}
 	},
-	determineEndGameConditions: () => {
-		const allyMoves = _.cloneDeep(storage.moves);
-		const allySide = storage.player_turn;
-		const kingPos = boardHelpers.getKingPos(allySide);
-
+	filterPinnedKingMoves: () => {
+		storage.king_neighbours = [];
+		const currentKingPos = storage.king_pos[storage.player_turn];
 		let inCheck = false;
+		moveGenerator.generateAllQueenMoves(
+			storage.king_pos[storage.player_turn][0],
+			storage.king_pos[storage.player_turn][1],
+			storage.player_turn
+		);
+		storage.king_neighbours.push(storage.king_pos[storage.player_turn]);
+		const allyMoves = [];
+		for (let i = 0; i < storage.moves.length; i++) {
+			allyMoves.push(storage.moves[i]);
+		}
+		const enemyMoves = [];
 		storage.player_turn = storage.opposite_player[storage.player_turn];
 		moveGenerator.generateAllPossibleMoves();
-
-		const enemyMoves = _.cloneDeep(storage.moves);
-		const enemyKeys = Object.keys(enemyMoves);
-
-		if (
-			allyMoves[JSON.stringify(kingPos)] &&
-			allyMoves[JSON.stringify(kingPos)].length
-		) {
-			for (let i = 0; i < enemyKeys.length; i++) {
-				const moves = enemyMoves[enemyKeys[i]];
+		for (let i = 0; i < storage.moves.length; i++) {
+			enemyMoves.push(storage.moves[i]);
+		}
+		storage.player_turn = storage.opposite_player[storage.player_turn];
+		for (let i = 0; i < enemyMoves.length; i++) {
+			for (let j = 0; j < enemyMoves[i].length; j++) {
+				if (
+					boardHelpers.checkTwoCoordsEqual(enemyMoves[i][j], currentKingPos)
+				) {
+					inCheck = true;
+					i = enemyMoves.length;
+					break;
+				}
+			}
+		}
+		if (!inCheck) {
+			for (let i = 0; i < storage.king_neighbours.length; i++) {
+				const startingCoord = storage.king_neighbours[i];
+				const moves =
+					allyMoves[
+						boardHelpers.getCoordToLinearNum(startingCoord[0], startingCoord[1])
+					];
 				for (let j = 0; j < moves.length; j++) {
-					if (JSON.stringify(moves[j]) === JSON.stringify(kingPos)) {
-						storage.board[kingPos[0]][kingPos[1]].inCheck = true;
-						storage.board[kingPos[0]][kingPos[1]].hasBeenChecked = true;
-						inCheck = true;
-						const filterMoves = allyMoves[JSON.stringify(kingPos)].map((move) =>
-							JSON.stringify(move)
-						);
-						if (allySide === "W" && JSON.stringify(kingPos) === "[7,4]") {
-							const indexRight = filterMoves.findIndex(
-								(elem) => elem === "[7,6]"
-							);
-							if (indexRight !== -1) {
-								allyMoves[JSON.stringify(kingPos)][indexRight] = null;
-							}
-							const indexLeft = filterMoves.findIndex(
-								(elem) => elem === "[7,2]"
-							);
-							if (indexLeft !== -1) {
-								allyMoves[JSON.stringify(kingPos)][indexLeft] = null;
-							}
-						} else if (
-							allySide === "B" &&
-							JSON.stringify(kingPos) === "[0,4]"
-						) {
-							const indexRight = filterMoves.findIndex(
-								(elem) => elem === "[0,6]"
-							);
-							if (indexRight !== -1) {
-								allyMoves[JSON.stringify(kingPos)][indexRight] = null;
-							}
-							const indexLeft = filterMoves.findIndex(
-								(elem) => elem === "[0,2]"
-							);
-							if (indexLeft !== -1) {
-								allyMoves[JSON.stringify(kingPos)][indexLeft] = null;
+					boardSquareModel.movePiece(startingCoord, moves[j]);
+					const enemyMoveSet = moveGenerator.generateAllPossibleMoves();
+					for (let k = 0; k < enemyMoveSet.length; k++) {
+						const enemyMoves = enemyMoveSet[k];
+						for (let z = 0; z < enemyMoves.length; z++) {
+							if (
+								boardHelpers.checkTwoCoordsEqual(
+									enemyMoves[z],
+									storage.king_pos[storage.opposite_player[storage.player_turn]]
+								)
+							) {
+								moves[j] = null;
 							}
 						}
-						j = moves.length;
-						i = enemyKeys.length;
 					}
+					boardSquareModel.undoMovePiece();
+				}
+			}
+			if (
+				storage.board[currentKingPos[0]][currentKingPos[1]].kingSideCastle ||
+				storage.board[currentKingPos[0]][currentKingPos[1]].queenSideCastle
+			) {
+				for (let i = 0; i < enemyMoves.length; i++) {
+					const moves = enemyMoves[i];
+					for (let j = 0; j < moves.length; j++) {
+						if (
+							storage.board[currentKingPos[0]][currentKingPos[1]].kingSideCastle
+						) {
+							if (
+								boardHelpers.checkTwoCoordsEqual(moves[j], [
+									currentKingPos[0],
+									5,
+								]) ||
+								boardHelpers.checkTwoCoordsEqual(moves[j], [
+									currentKingPos[0],
+									6,
+								])
+							) {
+								storage.board[currentKingPos[0]][
+									currentKingPos[1]
+								].kingSideCastle = false;
+							}
+						}
+						if (
+							storage.board[currentKingPos[0]][currentKingPos[1]]
+								.queenSideCastle
+						) {
+							if (
+								boardHelpers.checkTwoCoordsEqual(moves[j], [
+									currentKingPos[0],
+									3,
+								]) ||
+								boardHelpers.checkTwoCoordsEqual(moves[j], [
+									currentKingPos[0],
+									2,
+								])
+							) {
+								storage.board[currentKingPos[0]][
+									currentKingPos[1]
+								].queenSideCastle = false;
+							}
+						}
+					}
+				}
+				if (
+					storage.board[currentKingPos[0]][currentKingPos[1]].kingSideCastle
+				) {
+					allyMoves[
+						boardHelpers.getCoordToLinearNum(
+							currentKingPos[0],
+							currentKingPos[1]
+						)
+					].push([currentKingPos[0], 6]);
+				}
+				if (
+					storage.board[currentKingPos[0]][currentKingPos[1]].queenSideCastle
+				) {
+					allyMoves[
+						boardHelpers.getCoordToLinearNum(
+							currentKingPos[0],
+							currentKingPos[1]
+						)
+					].push([currentKingPos[0], 2]);
 				}
 			}
 		} else {
-			inCheck = true;
+			for (let i = 0; i < allyMoves.length; i++) {
+				const startingCoord = boardHelpers.getLinearNumToCoord(i);
+				const moves = allyMoves[i];
+				for (let j = 0; j < moves.length; j++) {
+					boardSquareModel.movePiece(startingCoord, moves[j]);
+					const enemyMoveSet = moveGenerator.generateAllPossibleMoves();
+					for (let k = 0; k < enemyMoveSet.length; k++) {
+						const enemyMoves = enemyMoveSet[k];
+						for (let z = 0; z < enemyMoves.length; z++) {
+							if (
+								boardHelpers.checkTwoCoordsEqual(
+									enemyMoves[z],
+									storage.king_pos[storage.opposite_player[storage.player_turn]]
+								)
+							) {
+								moves[j] = null;
+							}
+						}
+					}
+					boardSquareModel.undoMovePiece();
+				}
+			}
 		}
-
-		if (Object.keys(allyMoves).length === 0 && inCheck) {
-			console.log("CHECKMATE");
-			storage.board[kingPos[0]][kingPos[1]].inCheck = true;
-			storage.moves = [];
-			storage.game_over = true;
-		} else if (Object.keys(allyMoves).length === 0 && !inCheck) {
-			console.log("STALEMATE");
-			storage.moves = [];
-			storage.game_over = true;
-		} else {
-			storage.moves = allyMoves;
-			storage.player_turn = storage.opposite_player[storage.player_turn];
-		}
+		storage.moves = allyMoves;
 	},
 	getMoves: () => {
-		if (!storage.game_over) {
-			moveGenerator.generateAllPossibleMoves();
-			moveGenerator.filterIllegalMoves();
-			moveGenerator.determineEndGameConditions();
-			return storage.moves;
-		}
-		return [];
+		moveGenerator.generateAllPossibleMoves();
+		moveGenerator.filterPinnedKingMoves();
+		return storage.moves;
 	},
 	moveGenerationTest: (depth) => {
 		if (depth === 0) {
 			return 1;
 		}
-		const moveSet = moveGenerator.getMoves();
-		const moveKeys = Object.keys(moveSet);
+		const moveSetUnfiltered = moveGenerator.getMoves();
+		const moveSet = [];
+		for (let i = 0; i < moveSetUnfiltered.length; i++) {
+			const moves = [];
+			for (let j = 0; j < moveSetUnfiltered[i].length; j++) {
+				if (moveSetUnfiltered[i][j]) {
+					moves.push(moveSetUnfiltered[i][j]);
+				}
+			}
+			moveSet.push(moves);
+		}
+
 		let numPositions = 0;
 
-		for (let i = 0; i < moveKeys.length; i++) {
-			const startingCoord = JSON.parse(moveKeys[i]);
-			const moves = moveSet[moveKeys[i]];
+		for (let i = 0; i < moveSet.length; i++) {
+			const startingCoord = boardHelpers.getLinearNumToCoord(i);
+			const moves = moveSet[i];
 			for (let j = 0; j < moves.length; j++) {
-				if (moves[j]) {
-					boardSquareModel.movePiece(startingCoord, moves[j]);
-					numPositions += moveGenerator.moveGenerationTest(depth - 1);
-					boardSquareModel.undoMovePiece();
-				}
+				boardSquareModel.movePiece(startingCoord, moves[j]);
+				numPositions += moveGenerator.moveGenerationTest(depth - 1);
+				boardSquareModel.undoMovePiece();
 			}
 		}
 		return numPositions;

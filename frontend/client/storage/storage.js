@@ -1,15 +1,23 @@
 export const storage = {
-	player_turn: "W",
+	player_turn: "w",
 	opposite_player: {
-		W: "B",
-		B: "W",
+		w: "b",
+		b: "w",
 	},
 	king_checked: {
-		W: false,
-		B: false,
+		w: false,
+		b: false,
 	},
+	king_pos: {
+		w: [7, 4],
+		b: [0, 4],
+	},
+	king_neighbours: [],
+	fen_loaded: false,
+	castles: 0,
+	eps: 0,
 	board: [],
-	moves: {},
+	moves: null,
 	move_log: [],
 	game_over: false,
 	legal_squares: [],
@@ -19,6 +27,26 @@ export const storage = {
 	promotion_pieces: ["R", "N", "B", "Q"],
 	alpha: ["A", "B", "C", "D", "E", "F", "G"],
 	nums: ["1", "2", "3", "4", "5", "6", "7", "8"],
+	alpha_col_mapping: {
+		a: 0,
+		b: 1,
+		c: 2,
+		d: 3,
+		e: 4,
+		f: 5,
+		g: 6,
+		h: 7,
+	},
+	num_row_mapping: {
+		8: 0,
+		7: 1,
+		6: 2,
+		5: 3,
+		4: 4,
+		3: 5,
+		2: 6,
+		1: 7,
+	},
 };
 
 export default storage;

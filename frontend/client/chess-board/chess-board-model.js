@@ -5,6 +5,9 @@ import boardSquare from "../board-square/board-square";
 export const chessBoardModel = {
 	initBoardLayout: () => {
 		storage.board = [];
+		storage.moves = new Array(64).fill(null);
+		storage.player_turn = "w";
+
 		for (let i = 0; i < 8; i++) {
 			const row = [];
 			for (let j = 0; j < 8; j++) {
@@ -19,21 +22,20 @@ export const chessBoardModel = {
 			pieceId: null,
 			pieceSide: null,
 			coord: [i, j],
-			enPassant: false,
 			inCheck: false,
 			firstMove: false,
-			queenSideCastle: false,
 			kingSideCastle: false,
+			queenSideCastle: false,
 		};
 		switch (i) {
 			case 1:
 			case 6:
-				squareInfo.pieceSide = i === 1 ? "B" : "W";
+				squareInfo.pieceSide = i === 1 ? "b" : "w";
 				squareInfo.pieceId = "P";
 				break;
 			case 0:
 			case 7:
-				squareInfo.pieceSide = i === 0 ? "B" : "W";
+				squareInfo.pieceSide = i === 0 ? "b" : "w";
 				switch (j) {
 					case 0:
 					case 7:
@@ -81,12 +83,9 @@ export const chessBoardModel = {
 	convertFENStringToBoardPosition: (fenString) => {
 		const fenArray = fenString.split(" ");
 		const charPositions = fenArray[0].split("/");
-		const playerTurn = fenArray[1].toUpperCase();
+		const playerTurn = fenArray[1];
 		const castlingRights = fenArray[2].split("");
 		const enPassantSquare = fenArray[3].split("");
-		const kingFirstMove = fenArray[4].split("");
-		const kingCheckHistory = fenArray[5].split("");
-		const rookFirstMove = fenArray[6].split("");
 		const linearArray = [];
 
 		// Get char positions
@@ -112,73 +111,37 @@ export const chessBoardModel = {
 				if (char.length) {
 					storage.board[i][j].pieceId = char.toUpperCase();
 					if (char === char.toUpperCase()) {
-						storage.board[i][j].pieceSide = "W";
+						storage.board[i][j].pieceSide = "w";
 						if (storage.board[i][j].pieceId === "K") {
+							storage.king_pos["w"] = [i, j];
 							if (castlingRights.includes("Q")) {
 								storage.board[i][j].queenSideCastle = true;
+								storage.board[7][0].firstMove = true;
+							} else {
+								storage.board[i][j].queenSideCastle = false;
 							}
 							if (castlingRights.includes("K")) {
 								storage.board[i][j].kingSideCastle = true;
-							}
-							if (kingFirstMove.includes("K")) {
-								storage.board[i][j].firstMove = true;
-							}
-							if (kingCheckHistory.includes("K")) {
-								storage.board[i][j].hasBeenChecked = true;
+								storage.board[7][7].firstMove = true;
 							} else {
-								storage.board[i][j].hasBeenChecked = false;
-							}
-							storage.board[i][j].inCheck = false;
-						} else if (
-							i === 7 &&
-							j === 7 &&
-							storage.board[i][j].pieceId === "R"
-						) {
-							if (rookFirstMove.includes("R")) {
-								storage.board[i][j].firstMove = true;
-							}
-						} else if (
-							i === 7 &&
-							j === 0 &&
-							storage.board[i][j].pieceId === "R"
-						) {
-							if (rookFirstMove.includes("L")) {
-								storage.board[i][j].firstMove = true;
+								storage.board[i][j].kingSideCastle = false;
 							}
 						}
 					} else if (char === char.toLowerCase()) {
-						storage.board[i][j].pieceSide = "B";
+						storage.board[i][j].pieceSide = "b";
 						if (storage.board[i][j].pieceId === "K") {
+							storage.king_pos["b"] = [i, j];
 							if (castlingRights.includes("q")) {
 								storage.board[i][j].queenSideCastle = true;
+								storage.board[0][0].firstMove = true;
+							} else {
+								storage.board[i][j].queenSideCastle = false;
 							}
 							if (castlingRights.includes("k")) {
 								storage.board[i][j].kingSideCastle = true;
-							}
-							if (kingFirstMove.includes("k")) {
-								storage.board[i][j].firstMove = true;
-							}
-							if (kingCheckHistory.includes("k")) {
-								storage.board[i][j].hasBeenChecked = true;
+								storage.board[0][7].firstMove = true;
 							} else {
-								storage.board[i][j].hasBeenChecked = false;
-							}
-							storage.board[i][j].inCheck = false;
-						} else if (
-							i === 0 &&
-							j === 7 &&
-							storage.board[i][j].pieceId === "R"
-						) {
-							if (rookFirstMove.includes("r")) {
-								storage.board[i][j].firstMove = true;
-							}
-						} else if (
-							i === 0 &&
-							j === 0 &&
-							storage.board[i][j].pieceId === "R"
-						) {
-							if (rookFirstMove.includes("r")) {
-								storage.board[i][j].firstMove = true;
+								storage.board[i][j].kingSideCastle = false;
 							}
 						}
 					}
@@ -196,187 +159,16 @@ export const chessBoardModel = {
 		}
 
 		if (enPassantSquare[0] !== "-") {
-			storage.board[Number(enPassantSquare[0])][
-				Number(enPassantSquare[1])
-			].enPassant = true;
+			storage.en_passant_square = [
+				storage.num_row_mapping[enPassantSquare[1]],
+				storage.alpha_col_mapping[enPassantSquare[0]],
+			];
+		} else {
+			storage.en_passant_square = [];
 		}
 
 		storage.player_turn = playerTurn;
 		return chessBoardModel.getEZBoardRepresentation();
-	},
-	convertBoardPositionToFENString: () => {
-		const fen_array = [];
-		let en_passant = "-";
-		const player_turn = storage.player_turn;
-		let whiteKingSideCastle = false;
-		let whiteQueenSideCastle = false;
-		let blackKingSideCastle = false;
-		let blackQueenSideCastle = false;
-		let whiteKingFirstMove = false;
-		let blackKingFirstMove = false;
-		let whiteKingHasBeenChecked = false;
-		let blackKingHasBeenChecked = false;
-		let whiteLeftRookFirstMove = false;
-		let whiteRightRookFirstMove = false;
-		let blackLeftRookFirstMove = false;
-		let blackRightRookFirstMove = false;
-
-		for (let i = 0; i < 8; i++) {
-			let counter = 0;
-			for (let j = 0; j < 8; j++) {
-				if (storage.board[i][j].pieceId) {
-					if (counter > 0) {
-						fen_array.push(String(counter));
-					}
-					counter = 0;
-					if (storage.board[i][j].pieceSide === "B") {
-						fen_array.push(storage.board[i][j].pieceId.toLowerCase());
-						if (storage.board[i][j].kingSideCastle) {
-							blackKingSideCastle = "k";
-						}
-						if (storage.board[i][j].queenSideCastle) {
-							blackQueenSideCastle = "q";
-						}
-						if (
-							storage.board[i][j].pieceId === "K" &&
-							storage.board[i][j].firstMove
-						) {
-							blackKingFirstMove = "k";
-						}
-						if (
-							storage.board[i][j].pieceId === "K" &&
-							storage.board[i][j].hasBeenChecked
-						) {
-							blackKingHasBeenChecked = "k";
-						}
-						if (
-							i === 0 &&
-							j === 7 &&
-							storage.board[i][j].pieceId === "R" &&
-							storage.board[i][j].firstMove
-						) {
-							blackRightRookFirstMove = "r";
-						}
-						if (
-							i === 0 &&
-							j === 0 &&
-							storage.board[i][j].pieceId === "R" &&
-							storage.board[i][j].firstMove
-						) {
-							blackLeftRookFirstMove = "l";
-						}
-					} else {
-						fen_array.push(storage.board[i][j].pieceId);
-						if (storage.board[i][j].kingSideCastle) {
-							whiteKingSideCastle = "K";
-						}
-						if (storage.board[i][j].queenSideCastle) {
-							whiteQueenSideCastle = "Q";
-						}
-						if (
-							storage.board[i][j].pieceId === "K" &&
-							storage.board[i][j].firstMove
-						) {
-							whiteKingFirstMove = "K";
-						}
-						if (
-							storage.board[i][j].pieceId === "K" &&
-							storage.board[i][j].hasBeenChecked
-						) {
-							whiteKingHasBeenChecked = "K";
-						}
-						if (
-							i === 7 &&
-							j === 0 &&
-							storage.board[i][j].pieceId === "R" &&
-							storage.board[i][j].firstMove
-						) {
-							whiteLeftRookFirstMove = "L";
-						}
-						if (
-							i === 7 &&
-							j === 7 &&
-							storage.board[i][j].pieceId === "R" &&
-							storage.board[i][j].firstMove
-						) {
-							whiteRightRookFirstMove = "R";
-						}
-					}
-				} else {
-					counter += 1;
-				}
-				if (storage.board[i][j].enPassant) {
-					en_passant = `${i}${j}`;
-				}
-			}
-			if (counter > 0) {
-				fen_array.push(String(counter));
-			}
-			counter = 0;
-			if (i !== 7) {
-				fen_array.push("/");
-			}
-		}
-
-		const castlingRights =
-			!whiteKingSideCastle &&
-			!whiteQueenSideCastle &&
-			!blackKingSideCastle &&
-			!blackQueenSideCastle
-				? "-"
-				: [
-						whiteKingSideCastle ? whiteKingSideCastle : "",
-						whiteQueenSideCastle ? whiteQueenSideCastle : "",
-						blackKingSideCastle ? blackKingSideCastle : "",
-						blackQueenSideCastle ? blackQueenSideCastle : "",
-				  ].join("");
-
-		const kingFirstMove =
-			!whiteKingFirstMove && !blackKingFirstMove
-				? "-"
-				: [
-						whiteKingFirstMove ? whiteKingFirstMove : "",
-						blackKingFirstMove ? blackKingFirstMove : "",
-				  ].join("");
-
-		const kingCheckHistory =
-			!whiteKingHasBeenChecked && !blackKingHasBeenChecked
-				? "-"
-				: [
-						whiteKingHasBeenChecked ? whiteKingHasBeenChecked : "",
-						blackKingHasBeenChecked ? blackKingHasBeenChecked : "",
-				  ].join("");
-
-		const rookFirstMoves =
-			!whiteLeftRookFirstMove &&
-			!whiteRightRookFirstMove &&
-			!blackLeftRookFirstMove &&
-			!blackRightRookFirstMove
-				? "-"
-				: [
-						whiteLeftRookFirstMove ? whiteLeftRookFirstMove : "",
-						whiteRightRookFirstMove ? whiteRightRookFirstMove : "",
-						blackLeftRookFirstMove ? blackLeftRookFirstMove : "",
-						blackRightRookFirstMove ? blackRightRookFirstMove : "",
-				  ].join("");
-
-		const otherChars = [
-			" ",
-			player_turn.toLowerCase(),
-			" ",
-			castlingRights,
-			" ",
-			en_passant,
-			" ",
-			kingFirstMove,
-			" ",
-			kingCheckHistory,
-			" ",
-			rookFirstMoves,
-		];
-
-		const fenString = fen_array.concat(otherChars).join("");
-		return fenString;
 	},
 	drawBoard: () => {
 		return storage.board.map((row) => {
