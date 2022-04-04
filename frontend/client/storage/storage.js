@@ -13,6 +13,7 @@ export const storage = {
 		b: [0, 4],
 	},
 	king_neighbours: [],
+	pawn_danger_squares: [],
 	fen_loaded: false,
 	castles: 0,
 	eps: 0,
@@ -37,6 +38,16 @@ export const storage = {
 		g: 6,
 		h: 7,
 	},
+	alpha_col_mapping_reverse: {
+		0: "a",
+		1: "b",
+		2: "c",
+		3: "d",
+		4: "e",
+		5: "f",
+		6: "g",
+		7: "h",
+	},
 	num_row_mapping: {
 		8: 0,
 		7: 1,
@@ -47,6 +58,17 @@ export const storage = {
 		2: 6,
 		1: 7,
 	},
+	num_row_mapping_reverse: {
+		0: 8,
+		1: 7,
+		2: 6,
+		3: 5,
+		4: 4,
+		5: 3,
+		6: 2,
+		7: 1,
+	},
+	test_moves: [],
 };
 
 export default storage;

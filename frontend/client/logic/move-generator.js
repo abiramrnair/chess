@@ -666,6 +666,8 @@ export const moveGenerator = {
 				}
 			}
 		}
+		let canKingSideCastle = true;
+		let canQueenSideCastle = true;
 		if (!inCheck) {
 			for (let i = 0; i < storage.king_neighbours.length; i++) {
 				const startingCoord = storage.king_neighbours[i];
@@ -685,6 +687,22 @@ export const moveGenerator = {
 									storage.king_pos[storage.opposite_player[storage.player_turn]]
 								)
 							) {
+								if (
+									boardHelpers.checkTwoCoordsEqual(enemyMoves[z], [
+										currentKingPos[0],
+										5,
+									])
+								) {
+									canKingSideCastle = false;
+								}
+								if (
+									boardHelpers.checkTwoCoordsEqual(enemyMoves[z], [
+										currentKingPos[0],
+										3,
+									])
+								) {
+									canQueenSideCastle = false;
+								}
 								moves[j] = null;
 							}
 						}
@@ -739,7 +757,8 @@ export const moveGenerator = {
 					}
 				}
 				if (
-					storage.board[currentKingPos[0]][currentKingPos[1]].kingSideCastle
+					storage.board[currentKingPos[0]][currentKingPos[1]].kingSideCastle &&
+					canKingSideCastle
 				) {
 					allyMoves[
 						boardHelpers.getCoordToLinearNum(
@@ -749,7 +768,8 @@ export const moveGenerator = {
 					].push([currentKingPos[0], 6]);
 				}
 				if (
-					storage.board[currentKingPos[0]][currentKingPos[1]].queenSideCastle
+					storage.board[currentKingPos[0]][currentKingPos[1]].queenSideCastle &&
+					canQueenSideCastle
 				) {
 					allyMoves[
 						boardHelpers.getCoordToLinearNum(
@@ -788,34 +808,31 @@ export const moveGenerator = {
 	getMoves: () => {
 		moveGenerator.generateAllPossibleMoves();
 		moveGenerator.filterPinnedKingMoves();
-		return storage.moves;
+		const moves = [];
+		for (let i = 0; i < storage.moves.length; i++) {
+			const startingCoord = boardHelpers.getLinearNumToCoord(i);
+			const possibleMoves = storage.moves[i];
+			for (let j = 0; j < possibleMoves.length; j++) {
+				if (possibleMoves[j]) {
+					moves.push([startingCoord, possibleMoves[j]]);
+				}
+			}
+		}
+		return moves;
 	},
 	moveGenerationTest: (depth) => {
 		if (depth === 0) {
 			return 1;
 		}
-		const moveSetUnfiltered = moveGenerator.getMoves();
-		const moveSet = [];
-		for (let i = 0; i < moveSetUnfiltered.length; i++) {
-			const moves = [];
-			for (let j = 0; j < moveSetUnfiltered[i].length; j++) {
-				if (moveSetUnfiltered[i][j]) {
-					moves.push(moveSetUnfiltered[i][j]);
-				}
-			}
-			moveSet.push(moves);
-		}
-
+		const moveSet = moveGenerator.getMoves();
 		let numPositions = 0;
 
 		for (let i = 0; i < moveSet.length; i++) {
-			const startingCoord = boardHelpers.getLinearNumToCoord(i);
-			const moves = moveSet[i];
-			for (let j = 0; j < moves.length; j++) {
-				boardSquareModel.movePiece(startingCoord, moves[j]);
-				numPositions += moveGenerator.moveGenerationTest(depth - 1);
-				boardSquareModel.undoMovePiece();
-			}
+			const startingCoord = moveSet[i][0];
+			const move = moveSet[i][1];
+			boardSquareModel.movePiece(startingCoord, move);
+			numPositions += moveGenerator.moveGenerationTest(depth - 1);
+			boardSquareModel.undoMovePiece();
 		}
 		return numPositions;
 	},

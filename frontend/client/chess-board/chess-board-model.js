@@ -118,13 +118,15 @@ export const chessBoardModel = {
 								storage.board[i][j].queenSideCastle = true;
 								storage.board[7][0].firstMove = true;
 							} else {
-								storage.board[i][j].queenSideCastle = false;
+								storage.board[i][j].firstMove = false;
+								storage.board[7][0].firstMove = false;
 							}
 							if (castlingRights.includes("K")) {
 								storage.board[i][j].kingSideCastle = true;
 								storage.board[7][7].firstMove = true;
 							} else {
-								storage.board[i][j].kingSideCastle = false;
+								storage.board[i][j].firstMove = false;
+								storage.board[7][7].firstMove = false;
 							}
 						}
 					} else if (char === char.toLowerCase()) {
@@ -135,13 +137,15 @@ export const chessBoardModel = {
 								storage.board[i][j].queenSideCastle = true;
 								storage.board[0][0].firstMove = true;
 							} else {
-								storage.board[i][j].queenSideCastle = false;
+								storage.board[i][j].firstMove = false;
+								storage.board[0][0].firstMove = false;
 							}
 							if (castlingRights.includes("k")) {
 								storage.board[i][j].kingSideCastle = true;
 								storage.board[0][7].firstMove = true;
 							} else {
-								storage.board[i][j].kingSideCastle = false;
+								storage.board[i][j].firstMove = false;
+								storage.board[0][7].firstMove = false;
 							}
 						}
 					}

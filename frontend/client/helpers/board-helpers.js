@@ -19,6 +19,11 @@ export const boardHelpers = {
 		const coordArr = coord.split("");
 		return [Number(coordArr[1]), Number(coordArr[3])];
 	},
+	convertCoordToStandardNotation: (coord) => {
+		return `${storage.alpha_col_mapping_reverse[coord[1]]}${
+			storage.num_row_mapping_reverse[coord[0]]
+		}`;
+	},
 };
 
 export default boardHelpers;

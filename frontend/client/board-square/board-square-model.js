@@ -207,7 +207,7 @@ export const boardSquareModel = {
 			if (enPassant[0] === 2) {
 				storage.board[enPassant[0] + 1][enPassant[1]].pieceId = "P";
 				storage.board[enPassant[0] + 1][enPassant[1]].pieceSide = "b";
-			} else if (enPassant[0] === 6) {
+			} else if (enPassant[0] === 5) {
 				storage.board[enPassant[0] - 1][enPassant[1]].pieceId = "P";
 				storage.board[enPassant[0] - 1][enPassant[1]].pieceSide = "w";
 			}
