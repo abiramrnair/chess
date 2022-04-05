@@ -23,6 +23,7 @@ export const storage = {
 	check_mate: false,
 	stale_mate: false,
 	bot_next_move: [],
+	bot_calculating: false,
 	legal_squares: [],
 	en_passant_square: [],
 	selected_square_coord: null,

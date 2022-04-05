@@ -2,7 +2,7 @@ import boardSquareModel from "../board-square/board-square-model";
 import moveGenerator from "../logic/move-generator";
 import storage from "../storage/storage";
 import m from "mithril";
-
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export const bot = {
 	P: 100,
 	N: 300,
@@ -65,7 +65,9 @@ export const bot = {
 		}
 		return alpha;
 	},
-	makeBotMove: (depth) => {
+	makeBotMove: async (depth) => {
+		await sleep(10);
+		storage.bot_calculating = true;
 		const maxDepth = depth;
 		bot.searchMove(
 			depth,
@@ -77,6 +79,7 @@ export const bot = {
 			storage.bot_next_move[0],
 			storage.bot_next_move[1]
 		);
+		storage.bot_calculating = false;
 		moveGenerator.getMoves();
 		m.redraw();
 	},

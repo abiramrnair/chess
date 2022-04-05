@@ -637,6 +637,8 @@ export const moveGenerator = {
 	filterIllegalMoves: () => {
 		storage.king_neighbours = [];
 		const currentKingPos = storage.king_pos[storage.player_turn];
+		const enemyKingPos =
+			storage.king_pos[storage.opposite_player[storage.player_turn]];
 		let inCheck = false;
 		moveGenerator.generateAllQueenMoves(
 			storage.king_pos[storage.player_turn][0],
@@ -644,6 +646,7 @@ export const moveGenerator = {
 			storage.player_turn
 		);
 		storage.board[currentKingPos[0]][currentKingPos[1]].inCheck = false;
+		storage.board[enemyKingPos[0]][enemyKingPos[1]].inCheck = false;
 		storage.king_neighbours.push(storage.king_pos[storage.player_turn]);
 		const allyMoves = [];
 		for (let i = 0; i < storage.moves.length; i++) {

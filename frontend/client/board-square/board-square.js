@@ -7,7 +7,7 @@ export const boardSquare = {
 	view: (vnode) => {
 		const { squareInfo } = vnode.attrs;
 		const squareId = squareInfo.coord;
-		const inCheck = squareInfo.inCheck;
+		const inCheck = !storage.bot_calculating && squareInfo.inCheck;
 		const selectedSquare =
 			JSON.stringify([squareId[0], squareId[1]]) ===
 			JSON.stringify(storage.selected_square_coord);

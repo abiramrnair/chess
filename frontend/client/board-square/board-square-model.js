@@ -68,6 +68,7 @@ export const boardSquareModel = {
 			storage.selected_square_coord = null;
 			storage.legal_squares = [];
 		} else {
+			let possibleMoves = [];
 			if (storage.legal_squares.includes(boardHelpers.stringifyCoord([i, j]))) {
 				if (
 					storage.board[storage.selected_square_coord[0]][
@@ -93,16 +94,10 @@ export const boardSquareModel = {
 					);
 					storage.selected_square_coord = null;
 					storage.legal_squares = [];
-					moveGenerator.getMoves();
-					m.redraw();
+					possibleMoves = moveGenerator.getMoves();
 				}
-				if (
-					storage.bot_players[storage.player_turn] &&
-					(!storage.check_mate || !storage.stale_mate)
-				) {
-					setTimeout(() => {
-						bot.makeBotMove(5);
-					}, 10);
+				if (storage.bot_players[storage.player_turn] && possibleMoves.length) {
+					bot.makeBotMove(5);
 				}
 			}
 		}
