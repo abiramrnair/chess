@@ -35,8 +35,9 @@ export const boardSquare = {
 			!isPromotionOptions
 				? [
 						imgLink &&
-							m("img", {
+							m(`img#${squareId[0]}-${squareId[1]}.piece-image`, {
 								src: imgLink,
+								draggable: true,
 							}),
 						m(
 							`div.indicator${legalSquare ? ".legal-square" : ""}${

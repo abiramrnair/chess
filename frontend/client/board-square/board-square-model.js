@@ -13,7 +13,8 @@ import whiteKing from "../assets/pieces/king.png";
 import blackKing from "../assets/pieces/_king.png";
 import boardHelpers from "../helpers/board-helpers";
 import moveGenerator from "../logic/move-generator";
-import chessBoardModel from "../chess-board/chess-board-model";
+import m from "mithril";
+import bot from "../bot/bot";
 
 export const boardSquareModel = {
 	getSquarePieceImage: (i, j) => {
@@ -93,6 +94,15 @@ export const boardSquareModel = {
 					storage.selected_square_coord = null;
 					storage.legal_squares = [];
 					moveGenerator.getMoves();
+					m.redraw();
+				}
+				if (
+					storage.bot_players[storage.player_turn] &&
+					(!storage.check_mate || !storage.stale_mate)
+				) {
+					setTimeout(() => {
+						bot.makeBotMove(5);
+					}, 10);
 				}
 			}
 		}
@@ -216,6 +226,10 @@ export const boardSquareModel = {
 		storage.board[squareOne.coord[0]][squareOne.coord[1]] = squareOne;
 		storage.board[squareTwo.coord[0]][squareTwo.coord[1]] = squareTwo;
 		storage.en_passant_square = enPassant;
+		if (storage.check_mate || storage.stale_mate) {
+			storage.check_mate = false;
+			storage.stale_mate = false;
+		}
 		storage.player_turn = storage.opposite_player[storage.player_turn];
 	},
 };

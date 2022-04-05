@@ -634,7 +634,7 @@ export const moveGenerator = {
 			}
 		}
 	},
-	filterPinnedKingMoves: () => {
+	filterIllegalMoves: () => {
 		storage.king_neighbours = [];
 		const currentKingPos = storage.king_pos[storage.player_turn];
 		let inCheck = false;
@@ -643,6 +643,7 @@ export const moveGenerator = {
 			storage.king_pos[storage.player_turn][1],
 			storage.player_turn
 		);
+		storage.board[currentKingPos[0]][currentKingPos[1]].inCheck = false;
 		storage.king_neighbours.push(storage.king_pos[storage.player_turn]);
 		const allyMoves = [];
 		for (let i = 0; i < storage.moves.length; i++) {
@@ -669,6 +670,7 @@ export const moveGenerator = {
 		let canKingSideCastle = true;
 		let canQueenSideCastle = true;
 		if (!inCheck) {
+			storage.board[currentKingPos[0]][currentKingPos[1]].inCheck = false;
 			for (let i = 0; i < storage.king_neighbours.length; i++) {
 				const startingCoord = storage.king_neighbours[i];
 				const moves =
@@ -780,6 +782,7 @@ export const moveGenerator = {
 				}
 			}
 		} else {
+			storage.board[currentKingPos[0]][currentKingPos[1]].inCheck = true;
 			for (let i = 0; i < allyMoves.length; i++) {
 				const startingCoord = boardHelpers.getLinearNumToCoord(i);
 				const moves = allyMoves[i];
@@ -807,7 +810,7 @@ export const moveGenerator = {
 	},
 	getMoves: () => {
 		moveGenerator.generateAllPossibleMoves();
-		moveGenerator.filterPinnedKingMoves();
+		moveGenerator.filterIllegalMoves();
 		const moves = [];
 		for (let i = 0; i < storage.moves.length; i++) {
 			const startingCoord = boardHelpers.getLinearNumToCoord(i);
@@ -817,6 +820,21 @@ export const moveGenerator = {
 					moves.push([startingCoord, possibleMoves[j]]);
 				}
 			}
+		}
+		if (
+			moves.length === 0 &&
+			storage.board[storage.king_pos[storage.player_turn][0]][
+				storage.king_pos[storage.player_turn][1]
+			].inCheck
+		) {
+			storage.check_mate = true;
+		} else if (
+			moves.length === 0 &&
+			!storage.board[storage.king_pos[storage.player_turn][0]][
+				storage.king_pos[storage.player_turn][1]
+			].inCheck
+		) {
+			storage.stale_mate = true;
 		}
 		return moves;
 	},
