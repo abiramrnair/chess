@@ -1,5 +1,6 @@
 import m from "mithril";
 import boardSquareModel from "../board-square/board-square-model";
+import bot from "../bot/bot";
 import boardHelpers from "../helpers/board-helpers";
 import storage from "../storage/storage";
 const _ = require("lodash");
@@ -820,7 +821,11 @@ export const moveGenerator = {
 			const possibleMoves = storage.moves[i];
 			for (let j = 0; j < possibleMoves.length; j++) {
 				if (possibleMoves[j]) {
-					moves.push([startingCoord, possibleMoves[j]]);
+					moves.push([
+						startingCoord,
+						possibleMoves[j],
+						bot.getMoveScore([startingCoord, possibleMoves[j]]),
+					]);
 				}
 			}
 		}
@@ -839,6 +844,15 @@ export const moveGenerator = {
 		) {
 			storage.stale_mate = true;
 		}
+		moves.sort((a, b) => {
+			if (a[2] < b[2]) {
+				return 1;
+			}
+			if (b[2] < a[2]) {
+				return -1;
+			}
+			return 0;
+		});
 		return moves;
 	},
 	moveGenerationTest: (depth) => {
@@ -847,7 +861,6 @@ export const moveGenerator = {
 		}
 		const moveSet = moveGenerator.getMoves();
 		let numPositions = 0;
-
 		for (let i = 0; i < moveSet.length; i++) {
 			const startingCoord = moveSet[i][0];
 			const move = moveSet[i][1];

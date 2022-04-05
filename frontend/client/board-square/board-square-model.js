@@ -97,7 +97,9 @@ export const boardSquareModel = {
 					possibleMoves = moveGenerator.getMoves();
 				}
 				if (storage.bot_players[storage.player_turn] && possibleMoves.length) {
-					bot.makeBotMove(5);
+					setTimeout(() => {
+						bot.makeBotMove(5);
+					}, 500);
 				}
 			}
 		}

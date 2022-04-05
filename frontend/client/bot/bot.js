@@ -17,6 +17,24 @@ export const bot = {
 		const bias = storage.player_turn === "w" ? 1 : -1;
 		return diff * bias;
 	},
+	getMoveScore: (moves) => {
+		let moveScore = 0;
+		const startingSquare = moves[0];
+		const capturingSquare = moves[1];
+
+		if (storage.board[capturingSquare[0]][capturingSquare[1]].pieceId) {
+			moveScore +=
+				10 *
+					bot[storage.board[capturingSquare[0]][capturingSquare[1]].pieceId] -
+				bot[storage.board[startingSquare[0]][startingSquare[1]].pieceId];
+		}
+
+		if (capturingSquare[2]) {
+			moveScore += bot[capturingSquare[2]];
+		}
+
+		return moveScore;
+	},
 	getMaterialCount: (side) => {
 		let materialCount = 0;
 		for (let i = 0; i < 8; i++) {
@@ -65,8 +83,7 @@ export const bot = {
 		}
 		return alpha;
 	},
-	makeBotMove: async (depth) => {
-		await sleep(10);
+	makeBotMove: (depth) => {
 		storage.bot_calculating = true;
 		const maxDepth = depth;
 		bot.searchMove(
