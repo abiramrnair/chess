@@ -12,8 +12,5 @@
 - add new move generation tests by following format for uploading FENs
 
 ### To-do
-- illegal move checking
-- check, checkmate, stalemate, draw
-- bot logic
 - styling
 - board rotation
