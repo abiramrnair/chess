@@ -638,8 +638,6 @@ export const moveGenerator = {
 	filterIllegalMoves: () => {
 		storage.king_neighbours = [];
 		const currentKingPos = storage.king_pos[storage.player_turn];
-		const enemyKingPos =
-			storage.king_pos[storage.opposite_player[storage.player_turn]];
 		let inCheck = false;
 		moveGenerator.generateAllQueenMoves(
 			storage.king_pos[storage.player_turn][0],
@@ -647,7 +645,6 @@ export const moveGenerator = {
 			storage.player_turn
 		);
 		storage.board[currentKingPos[0]][currentKingPos[1]].inCheck = false;
-		storage.board[enemyKingPos[0]][enemyKingPos[1]].inCheck = false;
 		storage.king_neighbours.push(storage.king_pos[storage.player_turn]);
 		const allyMoves = [];
 		for (let i = 0; i < storage.moves.length; i++) {
@@ -674,7 +671,6 @@ export const moveGenerator = {
 		let canKingSideCastle = true;
 		let canQueenSideCastle = true;
 		if (!inCheck) {
-			storage.board[currentKingPos[0]][currentKingPos[1]].inCheck = false;
 			for (let i = 0; i < storage.king_neighbours.length; i++) {
 				const startingCoord = storage.king_neighbours[i];
 				const moves =
@@ -786,7 +782,6 @@ export const moveGenerator = {
 				}
 			}
 		} else {
-			storage.board[currentKingPos[0]][currentKingPos[1]].inCheck = true;
 			for (let i = 0; i < allyMoves.length; i++) {
 				const startingCoord = boardHelpers.getLinearNumToCoord(i);
 				const moves = allyMoves[i];
@@ -812,7 +807,7 @@ export const moveGenerator = {
 		}
 		storage.moves = allyMoves;
 	},
-	getMoves: () => {
+	getMoves: (captureMovesOnly) => {
 		moveGenerator.generateAllPossibleMoves();
 		moveGenerator.filterIllegalMoves();
 		const moves = [];
@@ -821,11 +816,23 @@ export const moveGenerator = {
 			const possibleMoves = storage.moves[i];
 			for (let j = 0; j < possibleMoves.length; j++) {
 				if (possibleMoves[j]) {
-					moves.push([
-						startingCoord,
-						possibleMoves[j],
-						bot.getMoveScore([startingCoord, possibleMoves[j]]),
-					]);
+					if (!captureMovesOnly) {
+						moves.push([
+							startingCoord,
+							possibleMoves[j],
+							bot.getMoveScore([startingCoord, possibleMoves[j]]),
+						]);
+					} else {
+						if (
+							storage.board[possibleMoves[j][0]][possibleMoves[j][1]].pieceId
+						) {
+							moves.push([
+								startingCoord,
+								possibleMoves[j],
+								bot.getMoveScore([startingCoord, possibleMoves[j]]),
+							]);
+						}
+					}
 				}
 			}
 		}

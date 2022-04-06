@@ -51,7 +51,7 @@ export const bot = {
 	},
 	searchMove: (depth, maxDepth, alpha, beta) => {
 		if (depth === 0) {
-			return bot.evaluatePosition();
+			return bot.searchAllCaptures(alpha, beta);
 		}
 		const moveSet = moveGenerator.getMoves();
 		if (moveSet.length === 0) {
@@ -83,6 +83,33 @@ export const bot = {
 		}
 		return alpha;
 	},
+	searchAllCaptures: (alpha, beta) => {
+		let evaluation = bot.evaluatePosition();
+		if (evaluation >= beta) {
+			return beta;
+		}
+		if (evaluation > alpha) {
+			alpha = evaluation;
+		}
+		const moveSet = moveGenerator.getMoves(true);
+
+		for (let i = 0; i < moveSet.length; i++) {
+			const startingCoord = moveSet[i][0];
+			const move = moveSet[i][1];
+			boardSquareModel.movePiece(startingCoord, move);
+			evaluation = -1 * bot.searchAllCaptures(-1 * beta, -1 * alpha);
+			boardSquareModel.undoMovePiece();
+
+			if (evaluation >= beta) {
+				return beta;
+			}
+			if (evaluation > alpha) {
+				alpha = evaluation;
+			}
+		}
+
+		return alpha;
+	},
 	makeBotMove: (depth) => {
 		storage.bot_calculating = true;
 		const maxDepth = depth;
@@ -96,8 +123,8 @@ export const bot = {
 			storage.bot_next_move[0],
 			storage.bot_next_move[1]
 		);
-		storage.bot_calculating = false;
 		moveGenerator.getMoves();
+		storage.bot_calculating = false;
 		m.redraw();
 	},
 };

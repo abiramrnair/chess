@@ -28,8 +28,10 @@ export const boardSquare = {
 			}${selectedSquare ? ".selected" : ""}`,
 			{
 				onclick: () => {
-					boardSquareModel.handleSquareClick(squareId[0], squareId[1]);
-					m.redraw();
+					if (!storage.bot_calculating) {
+						boardSquareModel.handleSquareClick(squareId[0], squareId[1]);
+						m.redraw();
+					}
 				},
 			},
 			!isPromotionOptions
