@@ -28,6 +28,50 @@ export const boardHelpers = {
 			storage.num_row_mapping_reverse[coord[0]]
 		}`;
 	},
+    convertMoveToAlgebraicNotation: (prevCoord, nextCoord) => {
+        let notation = boardHelpers.convertCoordToStandardNotation(nextCoord);
+		let pieceId = storage.board[prevCoord[0]][prevCoord[1]].pieceId;
+		let isPawn = pieceId === "P" ? true : false;
+
+		// Castling
+		if(pieceId === "K" && prevCoord[1] === 4) {
+			if(nextCoord[1] === prevCoord[1] + 2) return "O-O";
+			else if(nextCoord[1] === prevCoord[1] - 2) return "O-O-O";
+		}
+
+		// Captures
+		if(storage.board[nextCoord[0]][nextCoord[1]].pieceId || (isPawn && boardHelpers.checkTwoCoordsEqual(storage.en_passant_square, nextCoord))) {
+			notation = "x" + notation;
+			if(isPawn) notation = storage.alpha_col_mapping_reverse[prevCoord[1]] + notation;
+		}
+
+		// For all pieces beside pawns
+		let includeCol = false, includeRow = false;
+		if(!isPawn) {
+			// Check if multiple pieces of the same type can move to the same final coordinate
+			for (let i = 0; i < storage.moves.length; i++) {
+				const startingCoord = boardHelpers.getLinearNumToCoord(i);
+				if(pieceId !== storage.board[startingCoord[0]][startingCoord[1]].pieceId) continue;	// Only for same piece types
+				const possibleMoves = storage.moves[i];
+				for (let j = 0; j < possibleMoves.length; j++) {
+					if (boardHelpers.checkTwoCoordsEqual(possibleMoves[j], nextCoord)) {
+						if(startingCoord[1] !== prevCoord[1]) includeCol = true;
+						else if(startingCoord[0] !== prevCoord[0]) includeRow = true;
+					}
+				}
+			}
+			if(includeRow) notation = storage.num_row_mapping_reverse[prevCoord[0]] + notation;
+			if(includeCol) notation = storage.alpha_col_mapping_reverse[prevCoord[1]] + notation;
+
+			notation = pieceId + notation;
+		}
+
+		// Promotions
+        if(nextCoord[2]) {
+            notation += "=" + nextCoord[2];
+        }
+        return notation;
+    },
 	convertIDtoCoord: (id) => {
 		const coord = id.split("-");
 		return [Number(coord[0]), Number(coord[1])];
