@@ -577,74 +577,71 @@ export const moveGenerator = {
 			]);
 		}
 
-		if (!storage.board[i][j].inCheck) {
+		if (
+			boardHelpers.checkTwoCoordsEqual([7, 4], [i, j]) &&
+			storage.board[i][j].firstMove
+		) {
 			if (
-				boardHelpers.checkTwoCoordsEqual([7, 4], [i, j]) &&
-				storage.board[i][j].firstMove
+				!storage.board[7][5].pieceId &&
+				!storage.board[7][6].pieceId &&
+				storage.board[7][7].pieceId === "R" &&
+				storage.board[7][7].firstMove &&
+				storage.board[7][7].pieceSide === "w"
 			) {
-				if (
-					!storage.board[7][5].pieceId &&
-					!storage.board[7][6].pieceId &&
-					storage.board[7][7].pieceId === "R" &&
-					storage.board[7][7].firstMove &&
-					storage.board[7][7].pieceSide === "w"
-				) {
-					storage.board[i][j].kingSideCastle = true;
-				} else {
-					storage.board[i][j].kingSideCastle = false;
-				}
-				if (
-					!storage.board[7][3].pieceId &&
-					!storage.board[7][2].pieceId &&
-					!storage.board[7][1].pieceId &&
-					storage.board[7][0].pieceId === "R" &&
-					storage.board[7][0].firstMove &&
-					storage.board[7][0].pieceSide === "w"
-				) {
-					storage.board[i][j].queenSideCastle = true;
-				} else {
-					storage.board[i][j].queenSideCastle = false;
-				}
-			} else if (
-				boardHelpers.checkTwoCoordsEqual([0, 4], [i, j]) &&
-				storage.board[i][j].firstMove
+				storage.board[i][j].kingSideCastle = true;
+			} else {
+				storage.board[i][j].kingSideCastle = false;
+			}
+			if (
+				!storage.board[7][3].pieceId &&
+				!storage.board[7][2].pieceId &&
+				!storage.board[7][1].pieceId &&
+				storage.board[7][0].pieceId === "R" &&
+				storage.board[7][0].firstMove &&
+				storage.board[7][0].pieceSide === "w"
 			) {
-				if (
-					!storage.board[0][5].pieceId &&
-					!storage.board[0][6].pieceId &&
-					storage.board[0][7].pieceId === "R" &&
-					storage.board[0][7].firstMove &&
-					storage.board[0][7].pieceSide === "b"
-				) {
-					storage.board[i][j].kingSideCastle = true;
-				} else {
-					storage.board[i][j].kingSideCastle = false;
-				}
-				if (
-					!storage.board[0][3].pieceId &&
-					!storage.board[0][2].pieceId &&
-					!storage.board[0][1].pieceId &&
-					storage.board[0][0].pieceId === "R" &&
-					storage.board[0][0].firstMove &&
-					storage.board[0][0].pieceSide === "b"
-				) {
-					storage.board[i][j].queenSideCastle = true;
-				} else {
-					storage.board[i][j].queenSideCastle = false;
-				}
+				storage.board[i][j].queenSideCastle = true;
+			} else {
+				storage.board[i][j].queenSideCastle = false;
+			}
+		} else if (
+			boardHelpers.checkTwoCoordsEqual([0, 4], [i, j]) &&
+			storage.board[i][j].firstMove
+		) {
+			if (
+				!storage.board[0][5].pieceId &&
+				!storage.board[0][6].pieceId &&
+				storage.board[0][7].pieceId === "R" &&
+				storage.board[0][7].firstMove &&
+				storage.board[0][7].pieceSide === "b"
+			) {
+				storage.board[i][j].kingSideCastle = true;
+			} else {
+				storage.board[i][j].kingSideCastle = false;
+			}
+			if (
+				!storage.board[0][3].pieceId &&
+				!storage.board[0][2].pieceId &&
+				!storage.board[0][1].pieceId &&
+				storage.board[0][0].pieceId === "R" &&
+				storage.board[0][0].firstMove &&
+				storage.board[0][0].pieceSide === "b"
+			) {
+				storage.board[i][j].queenSideCastle = true;
+			} else {
+				storage.board[i][j].queenSideCastle = false;
 			}
 		}
 	},
 	filterIllegalMoves: () => {
 		storage.king_neighbours = [];
 		const currentKingPos = storage.king_pos[storage.player_turn];
-		let inCheck = false;
+		storage.in_check = false;
 		moveGenerator.generateAllQueenMoves(
 			storage.king_pos[storage.player_turn][0],
 			storage.king_pos[storage.player_turn][1],
 			storage.player_turn
 		);
-		storage.board[currentKingPos[0]][currentKingPos[1]].inCheck = false;
 		storage.king_neighbours.push(storage.king_pos[storage.player_turn]);
 		const allyMoves = [];
 		for (let i = 0; i < storage.moves.length; i++) {
@@ -662,7 +659,8 @@ export const moveGenerator = {
 				if (
 					boardHelpers.checkTwoCoordsEqual(enemyMoves[i][j], currentKingPos)
 				) {
-					inCheck = true;
+					storage.in_check = true;
+					j = enemyMoves[i].length;
 					i = enemyMoves.length;
 					break;
 				}
@@ -670,7 +668,7 @@ export const moveGenerator = {
 		}
 		let canKingSideCastle = true;
 		let canQueenSideCastle = true;
-		if (!inCheck) {
+		if (!storage.in_check) {
 			for (let i = 0; i < storage.king_neighbours.length; i++) {
 				const startingCoord = storage.king_neighbours[i];
 				const moves =
@@ -836,19 +834,9 @@ export const moveGenerator = {
 				}
 			}
 		}
-		if (
-			moves.length === 0 &&
-			storage.board[storage.king_pos[storage.player_turn][0]][
-				storage.king_pos[storage.player_turn][1]
-			].inCheck
-		) {
+		if (moves.length === 0 && storage.in_check) {
 			storage.check_mate = true;
-		} else if (
-			moves.length === 0 &&
-			!storage.board[storage.king_pos[storage.player_turn][0]][
-				storage.king_pos[storage.player_turn][1]
-			].inCheck
-		) {
+		} else if (moves.length === 0 && !storage.in_check) {
 			storage.stale_mate = true;
 		}
 		moves.sort((a, b) => {

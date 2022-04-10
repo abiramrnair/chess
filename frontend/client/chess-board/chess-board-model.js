@@ -22,7 +22,6 @@ export const chessBoardModel = {
 			pieceId: null,
 			pieceSide: null,
 			coord: [i, j],
-			inCheck: false,
 			firstMove: false,
 			kingSideCastle: false,
 			queenSideCastle: false,
@@ -154,7 +153,6 @@ export const chessBoardModel = {
 					storage.board[i][j].pieceSide = null;
 					storage.board[i][j].enPassant = false;
 					storage.board[i][j].firstMove = false;
-					storage.board[i][j].inCheck = false;
 					storage.board[i][j].queenSideCastle = false;
 					storage.board[i][j].kingSideCastle = false;
 				}

@@ -98,7 +98,7 @@ export const boardSquareModel = {
 				}
 				if (storage.bot_players[storage.player_turn] && possibleMoves.length) {
 					setTimeout(() => {
-						bot.makeBotMove(5);
+						bot.makeBotMove(4);
 					}, 500);
 				}
 			}
@@ -123,7 +123,6 @@ export const boardSquareModel = {
 				storage.board[prevCoord[0]][3].pieceSide =
 					storage.board[prevCoord[0]][prevCoord[1]].pieceSide;
 				storage.board[prevCoord[0]][3].firstMove = false;
-				//storage.castles += 1;
 			}
 			if (prevCoord[1] - nextCoord[1] === -2) {
 				storage.board[prevCoord[0]][7].pieceId = null;
@@ -133,7 +132,6 @@ export const boardSquareModel = {
 				storage.board[prevCoord[0]][5].pieceSide =
 					storage.board[prevCoord[0]][prevCoord[1]].pieceSide;
 				storage.board[prevCoord[0]][5].firstMove = false;
-				//storage.castles += 1;
 			}
 		}
 		if (storage.board[prevCoord[0]][prevCoord[1]].pieceId === "P") {
@@ -146,7 +144,6 @@ export const boardSquareModel = {
 				}
 			}
 			if (boardHelpers.checkTwoCoordsEqual(enPassantSquare, nextCoord)) {
-				//storage.eps += 1;
 				// making en passant move
 				if (storage.board[prevCoord[0]][prevCoord[1]].pieceSide === "w") {
 					storage.board[enPassantSquare[0] + 1][enPassantSquare[1]].pieceId =
@@ -171,7 +168,6 @@ export const boardSquareModel = {
 			...storage.board[prevCoord[0]][prevCoord[1]],
 			coord: [nextCoord[0], nextCoord[1]],
 			firstMove: false,
-			inCheck: false,
 			kingSideCastle: false,
 			queenSideCastle: false,
 		};
@@ -181,7 +177,6 @@ export const boardSquareModel = {
 		storage.board[prevCoord[0]][prevCoord[1]].pieceId = null;
 		storage.board[prevCoord[0]][prevCoord[1]].pieceSide = null;
 		storage.board[prevCoord[0]][prevCoord[1]].firstMove = false;
-		storage.board[prevCoord[0]][prevCoord[1]].inCheck = false;
 		storage.board[prevCoord[0]][prevCoord[1]].kingSideCastle = false;
 		storage.board[prevCoord[0]][prevCoord[1]].queenSideCastle = false;
 		storage.player_turn = storage.opposite_player[storage.player_turn];

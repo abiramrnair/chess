@@ -22,6 +22,7 @@ export const storage = {
 	move_log: [],
 	check_mate: false,
 	stale_mate: false,
+	in_check: false,
 	bot_next_move: [],
 	bot_calculating: false,
 	legal_squares: [],
