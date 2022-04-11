@@ -1,5 +1,6 @@
 import m from "mithril";
 import moveGenerator from "../logic/move-generator";
+import storage from "../storage/storage";
 import chessBoardModel from "./chess-board-model";
 
 export const chessBoard = {

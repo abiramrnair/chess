@@ -25,11 +25,12 @@ export const boardSquare = {
 		const isPromotionOptions =
 			JSON.stringify(squareInfo.coord) ===
 			JSON.stringify(storage.promotion_coord);
+		const boardTheme = storage.board_theme;
 
 		return m(
 			`div#${squareId[0]}-${squareId[1]}.board-square${
-				imgLink ? ".clickable" : ""
-			}${selectedSquare ? ".selected" : ""}`,
+				boardTheme ? `.${boardTheme}` : ""
+			}${imgLink ? ".clickable" : ""}${selectedSquare ? ".selected" : ""}`,
 			{
 				onclick: () => {
 					if (!storage.bot_calculating) {
@@ -38,6 +39,7 @@ export const boardSquare = {
 					}
 				},
 			},
+
 			!isPromotionOptions
 				? [
 						imgLink &&

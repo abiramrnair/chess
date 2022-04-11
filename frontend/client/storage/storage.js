@@ -4,10 +4,6 @@ export const storage = {
 		w: "b",
 		b: "w",
 	},
-	king_checked: {
-		w: false,
-		b: false,
-	},
 	king_pos: {
 		w: [7, 4],
 		b: [0, 4],
@@ -16,6 +12,8 @@ export const storage = {
 		w: false,
 		b: true,
 	},
+	board_theme: "default",
+	bot_depth: 1,
 	king_neighbours: [],
 	board: [],
 	moves: null,
@@ -26,6 +24,7 @@ export const storage = {
 	bot_next_move: [],
 	bot_calculating: false,
 	legal_squares: [],
+	menu_open: false,
 	en_passant_square: [],
 	selected_square_coord: null,
 	promotion_coord: null,
@@ -72,7 +71,6 @@ export const storage = {
 		6: 2,
 		7: 1,
 	},
-	test_moves: [],
 };
 
 export default storage;

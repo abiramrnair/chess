@@ -50,6 +50,25 @@
 	.chess-board-row {
 		.board-square {
 			background: #f0d9b5;
+
+			&.blue {
+				background: #cddbe2;
+				&.clickable {
+					&.selected {
+						background: #6ab7cf;
+					}
+				}
+			}
+
+			&.green {
+				background: #eeeed2;
+				&.clickable {
+					&.selected {
+						background: #baca2b;
+					}
+				}
+			}
+
 			&.clickable {
 				cursor: pointer;
 
@@ -60,6 +79,24 @@
 		}
 		.board-square:nth-child(2n) {
 			background: #b58863;
+
+			&.blue {
+				background: #7296ac;
+				&.clickable {
+					&.selected {
+						background: #6ab7cf;
+					}
+				}
+			}
+
+			&.green {
+				background: #769656;
+				&.clickable {
+					&.selected {
+						background: #baca2b;
+					}
+				}
+			}
 
 			&.clickable {
 				cursor: pointer;
@@ -74,6 +111,25 @@
 	.chess-board-row:nth-child(2n) {
 		.board-square {
 			background: #b58863;
+
+			&.blue {
+				background: #7296ac;
+				&.clickable {
+					&.selected {
+						background: #6ab7cf;
+					}
+				}
+			}
+
+			&.green {
+				background: #769656;
+				&.clickable {
+					&.selected {
+						background: #baca2b;
+					}
+				}
+			}
+
 			&.clickable {
 				cursor: pointer;
 
@@ -84,6 +140,25 @@
 		}
 		.board-square:nth-child(2n) {
 			background: #f0d9b5;
+
+			&.blue {
+				background: #cddbe2;
+				&.clickable {
+					&.selected {
+						background: #6ab7cf;
+					}
+				}
+			}
+
+			&.green {
+				background: #eeeed2;
+				&.clickable {
+					&.selected {
+						background: #baca2b;
+					}
+				}
+			}
+
 			&.clickable {
 				cursor: pointer;
 

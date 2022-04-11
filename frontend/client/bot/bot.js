@@ -2,7 +2,7 @@ import boardSquareModel from "../board-square/board-square-model";
 import moveGenerator from "../logic/move-generator";
 import storage from "../storage/storage";
 import m from "mithril";
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 export const bot = {
 	// Piece square values for move biasing
 	PIECE_SQUARE_VALUES: {
@@ -37,7 +37,7 @@ export const bot = {
 		P: [
 			90, 90, 90, 90, 90, 90, 90, 90, 30, 30, 40, 50, 50, 40, 30, 30, 20, 20,
 			30, 40, 40, 30, 20, 20, 10, 10, 10, 35, 35, 10, 10, 10, 5, 5, 10, 35, 35,
-			5, 5, 5, 0, 0, 0, 5, 5, 0, 0, 0, 0, 0, 0, -10, -10, 0, 0, 0, 0, 0, 0, 0,
+			5, 5, 5, 0, 0, 0, 5, 5, 0, 0, 0, 0, 0, 0, -10, -15, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0,
 		],
 	},
@@ -103,7 +103,9 @@ export const bot = {
 	},
 	searchMove: (depth, maxDepth, alpha, beta) => {
 		if (depth === 0) {
-			return bot.searchAllCaptures(alpha, beta);
+			return storage.bot_depth > 2
+				? bot.searchAllCaptures(alpha, beta)
+				: bot.evaluatePosition();
 		}
 		const moveSet = moveGenerator.getMoves();
 		if (moveSet.length === 0) {

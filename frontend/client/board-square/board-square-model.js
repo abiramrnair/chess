@@ -13,7 +13,6 @@ import whiteKing from "../assets/pieces/king.png";
 import blackKing from "../assets/pieces/_king.png";
 import boardHelpers from "../helpers/board-helpers";
 import moveGenerator from "../logic/move-generator";
-import m from "mithril";
 import bot from "../bot/bot";
 
 export const boardSquareModel = {
@@ -98,7 +97,7 @@ export const boardSquareModel = {
 				}
 				if (storage.bot_players[storage.player_turn] && possibleMoves.length) {
 					setTimeout(() => {
-						bot.makeBotMove(4);
+						bot.makeBotMove(storage.bot_depth);
 					}, 500);
 				}
 			}

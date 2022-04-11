@@ -1,6 +1,7 @@
 @import "./chess-board.scss";
 @import "./board-square.scss";
 @import "./menu.scss";
+@import url("https://fonts.googleapis.com/css2?family=Roboto&display=swap");
 
 html {
 	background: #141e30; /* fallback for old browsers */
@@ -22,6 +23,7 @@ body {
 	display: flex;
 	justify-content: center;
 	margin: 0;
+	font-family: "Roboto", sans-serif;
 }
 
 #app-container {
@@ -29,4 +31,33 @@ body {
 	align-self: center;
 	flex-direction: column;
 	gap: 20px;
+	justify-content: center;
+	align-items: center;
+
+	.coord-flex-container {
+		display: flex;
+		gap: 10px;
+
+		.vertical-coords {
+			display: flex;
+			height: 810px;
+			flex-direction: column-reverse;
+			font-size: 16px;
+			color: white;
+			justify-content: space-around;
+		}
+	}
+
+	.alpha-flex-container {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+
+		.horizontal-coords {
+			display: flex;
+			font-size: 16px;
+			justify-content: space-around;
+			color: white;
+		}
+	}
 }

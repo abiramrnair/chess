@@ -1,8 +1,12 @@
 #app-container {
 	.chess-board-container {
+		display: flex;
 		height: fit-content;
 		width: fit-content;
 		border: 7px solid black;
+		justify-content: center;
+		align-items: center;
+		flex-direction: column;
 	}
 	.chess-board-row {
 		display: flex;
