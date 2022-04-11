@@ -69,7 +69,7 @@ module.exports = {
 	output: {
 		filename: "static/app.js",
 		path: path.resolve(__dirname, "build"),
-		publicPath: __dirname + "/build",
+		publicPath: "./",
 	},
 	mode: "production",
 	devtool: devtools,
