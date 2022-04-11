@@ -9,7 +9,12 @@ export const chessBoard = {
 		moveGenerator.getMoves();
 	},
 	view: () => {
-		return m("div.chess-board-container", chessBoardModel.drawBoard());
+		return m(
+			`div.chess-board-container${
+				storage.board_perspective === "b" ? ".rotated" : ""
+			}`,
+			chessBoardModel.drawBoard()
+		);
 	},
 };
 

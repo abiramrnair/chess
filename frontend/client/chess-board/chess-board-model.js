@@ -5,6 +5,7 @@ import boardSquare from "../board-square/board-square";
 export const chessBoardModel = {
 	initBoardLayout: () => {
 		storage.board = [];
+		storage.move_log = [];
 		storage.moves = new Array(64).fill(null);
 		storage.player_turn = "w";
 

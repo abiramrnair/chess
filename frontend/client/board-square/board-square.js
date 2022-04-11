@@ -1,4 +1,5 @@
 import m from "mithril";
+import boardHelpers from "../helpers/board-helpers";
 import moveGenerator from "../logic/move-generator";
 import storage from "../storage/storage";
 import boardSquareModel from "./board-square-model";
@@ -26,11 +27,26 @@ export const boardSquare = {
 			JSON.stringify(squareInfo.coord) ===
 			JSON.stringify(storage.promotion_coord);
 		const boardTheme = storage.board_theme;
-
+		const pastMoveStarting =
+			storage.show_last_move &&
+			storage.move_log[storage.move_log.length - 1] &&
+			boardHelpers.checkTwoCoordsEqual(
+				squareInfo.coord,
+				storage.move_log[storage.move_log.length - 1][0].coord
+			);
+		const pastMoveEnding =
+			storage.show_last_move &&
+			storage.move_log[storage.move_log.length - 1] &&
+			boardHelpers.checkTwoCoordsEqual(
+				squareInfo.coord,
+				storage.move_log[storage.move_log.length - 1][1].coord
+			);
 		return m(
 			`div#${squareId[0]}-${squareId[1]}.board-square${
 				boardTheme ? `.${boardTheme}` : ""
-			}${imgLink ? ".clickable" : ""}${selectedSquare ? ".selected" : ""}`,
+			}${imgLink ? ".clickable" : ""}${selectedSquare ? ".selected" : ""}${
+				pastMoveStarting ? ".past-move-starting" : ""
+			}${pastMoveEnding ? ".past-move-ending" : ""}`,
 			{
 				onclick: () => {
 					if (!storage.bot_calculating) {
@@ -43,10 +59,15 @@ export const boardSquare = {
 			!isPromotionOptions
 				? [
 						imgLink &&
-							m(`img#${squareId[0]}-${squareId[1]}.piece-image`, {
-								src: imgLink,
-								draggable: true,
-							}),
+							m(
+								`img#${squareId[0]}-${squareId[1]}${
+									storage.board_perspective === "b" ? ".rotated" : ""
+								}.piece-image`,
+								{
+									src: imgLink,
+									draggable: true,
+								}
+							),
 						m(
 							`div.indicator${legalSquare ? ".legal-square" : ""}${
 								inCheck ? ".in-check" : ""

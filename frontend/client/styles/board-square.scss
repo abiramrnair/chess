@@ -9,6 +9,10 @@
 		img {
 			height: 70px;
 			width: auto;
+
+			&.rotated {
+				transform: rotate(180deg);
+			}
 		}
 
 		.indicator {
@@ -76,6 +80,14 @@
 					background: #f7ec5b;
 				}
 			}
+
+			&.past-move-starting {
+				background: #cbb91a;
+			}
+
+			&.past-move-ending {
+				background: #e2ce1d;
+			}
 		}
 		.board-square:nth-child(2n) {
 			background: #b58863;
@@ -104,6 +116,14 @@
 				&.selected {
 					background: #f7ec5b;
 				}
+			}
+
+			&.past-move-starting {
+				background: #cbb91a;
+			}
+
+			&.past-move-ending {
+				background: #e2ce1d;
 			}
 		}
 	}
@@ -137,6 +157,14 @@
 					background: #f7ec5b;
 				}
 			}
+
+			&.past-move-starting {
+				background: #cbb91a;
+			}
+
+			&.past-move-ending {
+				background: #e2ce1d;
+			}
 		}
 		.board-square:nth-child(2n) {
 			background: #f0d9b5;
@@ -165,6 +193,14 @@
 				&.selected {
 					background: #f7ec5b;
 				}
+			}
+
+			&.past-move-starting {
+				background: #cbb91a;
+			}
+
+			&.past-move-ending {
+				background: #e2ce1d;
 			}
 		}
 	}

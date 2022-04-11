@@ -2,6 +2,7 @@ import m from "mithril";
 import chessBoardModel from "../chess-board/chess-board-model";
 import moveGenerator from "../logic/move-generator";
 import storage from "../storage/storage";
+import toggleSwitch from "../toggle-switch/toggle-switch";
 
 export const menuOptions = {
 	view: () => {
@@ -9,7 +10,7 @@ export const menuOptions = {
 			"select#theme-options.theme-options",
 			{
 				value: storage.board_theme,
-				onchange: (e) =>
+				onchange: () =>
 					(storage.board_theme =
 						document.getElementById("theme-options").value),
 			},
@@ -40,6 +41,20 @@ export const menuOptions = {
 				},
 			})
 		);
+		const perspectiveOptions = m(
+			"select#perspective-options.perspective-options",
+			{
+				value: storage.board_perspective,
+				onchange: () =>
+					(storage.board_perspective = document.getElementById(
+						"perspective-options"
+					).value),
+			},
+			[
+				m("option", { value: "w" }, "White"),
+				m("option", { value: "b" }, "Black"),
+			]
+		);
 
 		return m("div.menu-options-container", [
 			m("div", "Settings"),
@@ -47,6 +62,16 @@ export const menuOptions = {
 				m("div.option", "Theme", themeOptions),
 				m("div.option", "Bot Opponent", botOptions),
 				m("div.option", `Bot Depth (${storage.bot_depth})`, depthOptions),
+				m(
+					"div.option",
+					"Highlight Last Move",
+					m(toggleSwitch, {
+						onChangeFunc: () =>
+							(storage.show_last_move = !storage.show_last_move),
+						isChecked: storage.show_last_move,
+					})
+				),
+				m("div.option", "Board Perspective", perspectiveOptions),
 			]),
 		]);
 	},

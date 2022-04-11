@@ -11,17 +11,29 @@ export const App = {
 			m("div.coord-flex-container", [
 				m(
 					"div.vertical-coords",
-					Object.keys(storage.num_row_mapping).map((col) => {
-						return m("div", col);
-					})
+					storage.board_perspective === "w"
+						? Object.keys(storage.num_row_mapping).map((col) => {
+								return m("div", col);
+						  })
+						: Object.keys(storage.num_row_mapping)
+								.reverse()
+								.map((col) => {
+									return m("div", col);
+								})
 				),
 				m("div.alpha-flex-container", [
 					m(chessBoard),
 					m(
 						"div.horizontal-coords",
-						Object.keys(storage.alpha_col_mapping).map((row) => {
-							return m("div", row);
-						})
+						storage.board_perspective === "w"
+							? Object.keys(storage.alpha_col_mapping).map((row) => {
+									return m("div", row);
+							  })
+							: Object.keys(storage.alpha_col_mapping)
+									.reverse()
+									.map((row) => {
+										return m("div", row);
+									})
 					),
 				]),
 			]),
