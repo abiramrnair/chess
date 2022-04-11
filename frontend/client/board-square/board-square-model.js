@@ -13,24 +13,25 @@ import whiteKing from "../assets/pieces/king.png";
 import blackKing from "../assets/pieces/_king.png";
 import boardHelpers from "../helpers/board-helpers";
 import moveGenerator from "../logic/move-generator";
-import chessBoardModel from "../chess-board/chess-board-model";
+import m from "mithril";
+import bot from "../bot/bot";
 
 export const boardSquareModel = {
 	getSquarePieceImage: (i, j) => {
 		const square = storage.board[i][j];
 		switch (square.pieceId) {
 			case "P":
-				return square.pieceSide === "W" ? whitePawn : blackPawn;
+				return square.pieceSide === "w" ? whitePawn : blackPawn;
 			case "R":
-				return square.pieceSide === "W" ? whiteRook : blackRook;
+				return square.pieceSide === "w" ? whiteRook : blackRook;
 			case "N":
-				return square.pieceSide === "W" ? whiteKnight : blackKnight;
+				return square.pieceSide === "w" ? whiteKnight : blackKnight;
 			case "B":
-				return square.pieceSide === "W" ? whiteBishop : blackBishop;
+				return square.pieceSide === "w" ? whiteBishop : blackBishop;
 			case "Q":
-				return square.pieceSide === "W" ? whiteQueen : blackQueen;
+				return square.pieceSide === "w" ? whiteQueen : blackQueen;
 			case "K":
-				return square.pieceSide === "W" ? whiteKing : blackKing;
+				return square.pieceSide === "w" ? whiteKing : blackKing;
 			default:
 				break;
 		}
@@ -39,166 +40,189 @@ export const boardSquareModel = {
 		const square = storage.board[i][j];
 		switch (pieceId) {
 			case "R":
-				return square.pieceSide === "W" ? whiteRook : blackRook;
+				return square.pieceSide === "w" ? whiteRook : blackRook;
 			case "N":
-				return square.pieceSide === "W" ? whiteKnight : blackKnight;
+				return square.pieceSide === "w" ? whiteKnight : blackKnight;
 			case "B":
-				return square.pieceSide === "W" ? whiteBishop : blackBishop;
+				return square.pieceSide === "w" ? whiteBishop : blackBishop;
 			case "Q":
-				return square.pieceSide === "W" ? whiteQueen : blackQueen;
+				return square.pieceSide === "w" ? whiteQueen : blackQueen;
 			default:
 				break;
 		}
 	},
 	handleSquareClick: (i, j) => {
 		if (
-			JSON.stringify([i, j]) === JSON.stringify(storage.selected_square_coord)
+			!storage.selected_square_coord &&
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)] &&
+			storage.moves[boardHelpers.getCoordToLinearNum(i, j)].length
+		) {
+			storage.selected_square_coord = [i, j];
+			storage.legal_squares = storage.moves[
+				boardHelpers.getCoordToLinearNum(i, j)
+			].map((coord) => boardHelpers.stringifyCoord(coord));
+		} else if (
+			storage.selected_square_coord &&
+			boardHelpers.checkTwoCoordsEqual(storage.selected_square_coord, [i, j])
 		) {
 			storage.selected_square_coord = null;
 			storage.legal_squares = [];
-		} else if (
-			storage.player_turn &&
-			storage.board[i][j].pieceSide === storage.player_turn
-		) {
-			storage.selected_square_coord = [i, j];
-			storage.legal_squares = [];
-			const moves = storage.moves[JSON.stringify([i, j])];
-			if (
-				(storage.board[i][j].pieceSide === "W" && i === 1) ||
-				(storage.board[i][j].pieceSide === "B" && i === 6)
-			) {
-				if (moves && moves.length) {
-					for (let m = 0; m < moves.length; m++) {
-						const move = moves[m];
-						if (
-							!storage.legal_squares.includes(
-								JSON.stringify([move[0], move[1]])
-							)
-						) {
-							storage.legal_squares.push(JSON.stringify([move[0], move[1]]));
-						}
-					}
-				}
-			} else {
-				if (moves && moves.length) {
-					for (let i = 0; i < moves.length; i++) {
-						storage.legal_squares.push(JSON.stringify(moves[i]));
-					}
-				}
-			}
 		} else {
-			if (storage.legal_squares.includes(JSON.stringify([i, j]))) {
+			let possibleMoves = [];
+			if (storage.legal_squares.includes(boardHelpers.stringifyCoord([i, j]))) {
 				if (
 					storage.board[storage.selected_square_coord[0]][
 						storage.selected_square_coord[1]
 					].pieceId === "P" &&
 					((storage.board[storage.selected_square_coord[0]][
 						storage.selected_square_coord[1]
-					].pieceSide === "W" &&
+					].pieceSide === "w" &&
 						storage.selected_square_coord[0] === 1) ||
 						(storage.board[storage.selected_square_coord[0]][
 							storage.selected_square_coord[1]
-						].pieceSide === "B" &&
+						].pieceSide === "b" &&
 							storage.selected_square_coord[0] === 6))
 				) {
 					storage.promotion_coord = [i, j];
 				} else {
-					boardSquareModel.movePiece(storage.selected_square_coord, [i, j]);
-					storage.legal_squares = [];
+					const moveIndex = storage.legal_squares.findIndex(
+						(coord) => coord === boardHelpers.stringifyCoord([i, j])
+					);
+					boardSquareModel.movePiece(
+						storage.selected_square_coord,
+						boardHelpers.parseCoordString(storage.legal_squares[moveIndex])
+					);
 					storage.selected_square_coord = null;
-					moveGenerator.getMoves();
+					storage.legal_squares = [];
+					possibleMoves = moveGenerator.getMoves();
+				}
+				if (storage.bot_players[storage.player_turn] && possibleMoves.length) {
+					setTimeout(() => {
+						bot.makeBotMove(4);
+					}, 500);
 				}
 			}
 		}
 	},
 	movePiece: (prevCoord, nextCoord) => {
-		storage.move_log.push(chessBoardModel.convertBoardPositionToFENString());
-		const z = storage.player_turn === "W" ? 1 : -1;
-		const castleRow = storage.player_turn === "W" ? 7 : 0;
-
+		storage.move_log.push([
+			{ ...storage.board[prevCoord[0]][prevCoord[1]] },
+			{ ...storage.board[nextCoord[0]][nextCoord[1]] },
+			storage.en_passant_square,
+		]);
+		const enPassantSquare = storage.en_passant_square;
+		storage.en_passant_square = [];
 		if (storage.board[prevCoord[0]][prevCoord[1]].pieceId === "K") {
-			if (Math.abs(nextCoord[1] - prevCoord[1]) === 2) {
-				if (JSON.stringify(nextCoord) === JSON.stringify([castleRow, 6])) {
-					storage.board[castleRow][7].pieceId = null;
-					storage.board[castleRow][7].pieceSide = null;
-					storage.board[castleRow][7].firstMove = false;
-					storage.board[castleRow][5].pieceId = "R";
-					storage.board[castleRow][5].pieceSide = storage.player_turn;
-					storage.board[castleRow][5].firstMove = false;
+			storage.king_pos[storage.board[prevCoord[0]][prevCoord[1]].pieceSide] =
+				nextCoord;
+			if (prevCoord[1] - nextCoord[1] === 2) {
+				storage.board[prevCoord[0]][0].pieceId = null;
+				storage.board[prevCoord[0]][0].pieceSide = null;
+				storage.board[prevCoord[0]][0].firstMove = null;
+				storage.board[prevCoord[0]][3].pieceId = "R";
+				storage.board[prevCoord[0]][3].pieceSide =
+					storage.board[prevCoord[0]][prevCoord[1]].pieceSide;
+				storage.board[prevCoord[0]][3].firstMove = false;
+			}
+			if (prevCoord[1] - nextCoord[1] === -2) {
+				storage.board[prevCoord[0]][7].pieceId = null;
+				storage.board[prevCoord[0]][7].pieceSide = null;
+				storage.board[prevCoord[0]][7].firstMove = null;
+				storage.board[prevCoord[0]][5].pieceId = "R";
+				storage.board[prevCoord[0]][5].pieceSide =
+					storage.board[prevCoord[0]][prevCoord[1]].pieceSide;
+				storage.board[prevCoord[0]][5].firstMove = false;
+			}
+		}
+		if (storage.board[prevCoord[0]][prevCoord[1]].pieceId === "P") {
+			if (Math.abs(prevCoord[0] - nextCoord[0]) === 2) {
+				// setting en passant
+				if (storage.board[prevCoord[0]][prevCoord[1]].pieceSide === "w") {
+					storage.en_passant_square = [nextCoord[0] + 1, nextCoord[1]];
+				} else {
+					storage.en_passant_square = [nextCoord[0] - 1, nextCoord[1]];
 				}
-				if (JSON.stringify(nextCoord) === JSON.stringify([castleRow, 2])) {
-					storage.board[castleRow][0].pieceId = null;
-					storage.board[castleRow][0].pieceSide = null;
-					storage.board[castleRow][0].firstMove = false;
-					storage.board[castleRow][3].pieceId = "R";
-					storage.board[castleRow][3].pieceSide = storage.player_turn;
-					storage.board[castleRow][3].firstMove = false;
+			}
+			if (boardHelpers.checkTwoCoordsEqual(enPassantSquare, nextCoord)) {
+				// making en passant move
+				if (storage.board[prevCoord[0]][prevCoord[1]].pieceSide === "w") {
+					storage.board[enPassantSquare[0] + 1][enPassantSquare[1]].pieceId =
+						null;
+					storage.board[enPassantSquare[0] + 1][enPassantSquare[1]].pieceSide =
+						null;
+					storage.board[enPassantSquare[0] + 1][
+						enPassantSquare[1]
+					].firstMove = false;
+				} else {
+					storage.board[enPassantSquare[0] - 1][enPassantSquare[1]].pieceId =
+						null;
+					storage.board[enPassantSquare[0] - 1][enPassantSquare[1]].pieceSide =
+						null;
+					storage.board[enPassantSquare[0] - 1][
+						enPassantSquare[1]
+					].firstMove = false;
 				}
 			}
 		}
-
-		if (
-			storage.board[prevCoord[0]][prevCoord[1]].pieceId === "P" &&
-			storage.board[nextCoord[0]][nextCoord[1]].enPassant
-		) {
-			storage.board[nextCoord[0] + z][nextCoord[1]].pieceId = null;
-			storage.board[nextCoord[0] + z][nextCoord[1]].pieceSide = null;
-			storage.board[nextCoord[0] + z][nextCoord[1]].coord = [
-				nextCoord[0] + z,
-				nextCoord[1],
-			];
-			storage.board[nextCoord[0] + z][nextCoord[1]].inCheck = false;
-			storage.board[nextCoord[0] + z][nextCoord[1]].firstMove = false;
-			storage.board[nextCoord[0] + z][nextCoord[1]].enPassant = false;
-			storage.board[nextCoord[0] + z][nextCoord[1]].queenSideCastle = false;
-			storage.board[nextCoord[0] + z][nextCoord[1]].kingSideCastle = false;
-		}
-
-		if (
-			storage.board[prevCoord[0]][prevCoord[1]].pieceId === "P" &&
-			Math.abs(prevCoord[0] - nextCoord[0]) === 2
-		) {
-			if (storage.board[prevCoord[0]][prevCoord[1]].pieceSide === "W") {
-				storage.board[prevCoord[0] - 1][prevCoord[1]].enPassant = true;
-			} else {
-				storage.board[prevCoord[0] + 1][prevCoord[1]].enPassant = true;
-			}
-		}
-
 		storage.board[nextCoord[0]][nextCoord[1]] = {
 			...storage.board[prevCoord[0]][prevCoord[1]],
-			coord: storage.board[nextCoord[0]][nextCoord[1]].coord,
-			inCheck: false,
+			coord: [nextCoord[0], nextCoord[1]],
 			firstMove: false,
-			queenSideCastle: false,
 			kingSideCastle: false,
+			queenSideCastle: false,
 		};
-
 		if (nextCoord[2]) {
 			storage.board[nextCoord[0]][nextCoord[1]].pieceId = nextCoord[2];
 		}
-
-		boardHelpers.resetBoardSquare(prevCoord[0], prevCoord[1]);
-		storage.player_turn = storage.player_turn === "W" ? "B" : "W";
-		const enPassantCoord = storage.move_log.length
-			? storage.move_log[storage.move_log.length - 1].split(" ")[3].split("")
-			: null;
-		if (enPassantCoord && enPassantCoord[0] !== "-") {
-			storage.board[Number(enPassantCoord[0])][
-				Number(enPassantCoord[1])
-			].enPassant = false;
-		}
+		storage.board[prevCoord[0]][prevCoord[1]].pieceId = null;
+		storage.board[prevCoord[0]][prevCoord[1]].pieceSide = null;
+		storage.board[prevCoord[0]][prevCoord[1]].firstMove = false;
+		storage.board[prevCoord[0]][prevCoord[1]].kingSideCastle = false;
+		storage.board[prevCoord[0]][prevCoord[1]].queenSideCastle = false;
+		storage.player_turn = storage.opposite_player[storage.player_turn];
 	},
 	undoMovePiece: () => {
-		if (storage.promotion_coord) {
-			storage.promotion_coord = null;
-			storage.selected_square_coord = null;
-			return;
+		const moveSet = storage.move_log.pop();
+		const squareOne = moveSet[0];
+		const squareTwo = moveSet[1];
+		const enPassant = moveSet[2];
+
+		if (squareOne.pieceId === "K") {
+			storage.king_pos[squareOne.pieceSide] = squareOne.coord;
+			if (squareOne.coord[1] - squareTwo.coord[1] === -2) {
+				storage.board[squareOne.coord[0]][5].pieceId = null;
+				storage.board[squareOne.coord[0]][5].pieceSide = null;
+				storage.board[squareOne.coord[0]][5].firstMove = false;
+				storage.board[squareOne.coord[0]][7].pieceId = "R";
+				storage.board[squareOne.coord[0]][7].pieceSide = squareOne.pieceSide;
+				storage.board[squareOne.coord[0]][7].firstMove = true;
+			} else if (squareOne.coord[1] - squareTwo.coord[1] === 2) {
+				storage.board[squareOne.coord[0]][3].pieceId = null;
+				storage.board[squareOne.coord[0]][3].pieceSide = null;
+				storage.board[squareOne.coord[0]][3].firstMove = false;
+				storage.board[squareOne.coord[0]][0].pieceId = "R";
+				storage.board[squareOne.coord[0]][0].pieceSide = squareOne.pieceSide;
+				storage.board[squareOne.coord[0]][0].firstMove = true;
+			}
 		}
-		storage.game_over = false;
-		const lastBoardState = storage.move_log.pop();
-		storage.legal_squares = [];
-		chessBoardModel.convertFENStringToBoardPosition(lastBoardState);
+		if (enPassant.length) {
+			if (enPassant[0] === 2) {
+				storage.board[enPassant[0] + 1][enPassant[1]].pieceId = "P";
+				storage.board[enPassant[0] + 1][enPassant[1]].pieceSide = "b";
+			} else if (enPassant[0] === 5) {
+				storage.board[enPassant[0] - 1][enPassant[1]].pieceId = "P";
+				storage.board[enPassant[0] - 1][enPassant[1]].pieceSide = "w";
+			}
+		}
+
+		storage.board[squareOne.coord[0]][squareOne.coord[1]] = squareOne;
+		storage.board[squareTwo.coord[0]][squareTwo.coord[1]] = squareTwo;
+		storage.en_passant_square = enPassant;
+		if (storage.check_mate || storage.stale_mate) {
+			storage.check_mate = false;
+			storage.stale_mate = false;
+		}
+		storage.player_turn = storage.opposite_player[storage.player_turn];
 	},
 };
 

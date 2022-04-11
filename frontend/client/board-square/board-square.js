@@ -7,7 +7,11 @@ export const boardSquare = {
 	view: (vnode) => {
 		const { squareInfo } = vnode.attrs;
 		const squareId = squareInfo.coord;
-		const inCheck = squareInfo.inCheck;
+		const inCheck =
+			!storage.bot_calculating &&
+			storage.in_check &&
+			squareInfo.pieceId === "K" &&
+			squareInfo.pieceSide === storage.player_turn;
 		const selectedSquare =
 			JSON.stringify([squareId[0], squareId[1]]) ===
 			JSON.stringify(storage.selected_square_coord);
@@ -28,15 +32,18 @@ export const boardSquare = {
 			}${selectedSquare ? ".selected" : ""}`,
 			{
 				onclick: () => {
-					boardSquareModel.handleSquareClick(squareId[0], squareId[1]);
-					m.redraw();
+					if (!storage.bot_calculating) {
+						boardSquareModel.handleSquareClick(squareId[0], squareId[1]);
+						m.redraw();
+					}
 				},
 			},
 			!isPromotionOptions
 				? [
 						imgLink &&
-							m("img", {
+							m(`img#${squareId[0]}-${squareId[1]}.piece-image`, {
 								src: imgLink,
+								draggable: true,
 							}),
 						m(
 							`div.indicator${legalSquare ? ".legal-square" : ""}${
