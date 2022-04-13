@@ -10,10 +10,10 @@ export const storage = {
 	},
 	bot_players: {
 		w: false,
-		b: true,
+		b: false,
 	},
 	board_theme: "default",
-	bot_depth: 1,
+	bot_depth: 3,
 	king_neighbours: [],
 	board: [],
 	board_perspective: "w",

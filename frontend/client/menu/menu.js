@@ -1,7 +1,9 @@
 import m from "mithril";
 import backArrow from "../assets/back-arrow.png";
+import newGameIcon from "../assets/refresh-icon.png";
 import settingsIcon from "../assets/settings-icon.png";
 import boardSquareModel from "../board-square/board-square-model";
+import chessBoardModel from "../chess-board/chess-board-model";
 import moveGenerator from "../logic/move-generator";
 import storage from "../storage/storage";
 
@@ -30,6 +32,15 @@ export const menu = {
 					},
 				},
 				m("img", { src: settingsIcon })
+			),
+			m(
+				"button.action-button",
+				{
+					onclick: () => {
+						chessBoardModel.initBoardLayout();
+					},
+				},
+				m("img", { src: newGameIcon })
 			)
 		);
 	},

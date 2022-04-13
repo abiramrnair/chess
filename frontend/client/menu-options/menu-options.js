@@ -20,11 +20,49 @@ export const menuOptions = {
 				m("option", { value: "green" }, "Vine"),
 			]
 		);
-		const botOptions = m("select.bot-options", [
-			m("option", { value: "Black" }, "Black"),
-			m("option", { value: "White" }, "White"),
-			m("option", { value: "Disabled" }, "Disabled"),
-		]);
+		const botOptions = m(
+			"select#bot-options.bot-options",
+			{
+				value:
+					storage.bot_players["b"] && !storage.bot_players["w"]
+						? "b"
+						: storage.bot_players["w"] && !storage.bot_players["b"]
+						? "w"
+						: "d",
+				onchange: () => {
+					if (document.getElementById("bot-options").value === "d") {
+						storage.bot_players["w"] = false;
+						storage.bot_players["b"] = false;
+						storage.board_perspective = "w";
+						return;
+					} else if (document.getElementById("bot-options").value === "t") {
+						storage.bot_players["w"] = true;
+						storage.bot_players["b"] = true;
+						storage.board_perspective = "w";
+						return;
+					}
+					storage.bot_players[
+						document.getElementById("bot-options").value
+					] = true;
+					storage.bot_players[
+						storage.opposite_player[
+							document.getElementById("bot-options").value
+						]
+					] = false;
+					if (storage.bot_players["w"]) {
+						storage.board_perspective = "b";
+					} else {
+						storage.board_perspective = "w";
+					}
+				},
+			},
+			[
+				m("option", { value: "d" }, "Disabled"),
+				m("option", { value: "b" }, "Black"),
+				m("option", { value: "w" }, "White"),
+				m("option", { value: "t" }, "Bot v.s Bot"),
+			]
+		);
 		const depthOptions = m(
 			"div.depth-slider",
 			m("input#depth-slider.slider", {
@@ -36,8 +74,6 @@ export const menuOptions = {
 					storage.bot_depth = Number(
 						document.getElementById("depth-slider").value
 					);
-					chessBoardModel.initBoardLayout();
-					moveGenerator.getMoves();
 				},
 			})
 		);
@@ -73,6 +109,11 @@ export const menuOptions = {
 				),
 				m("div.option", "Board Perspective", perspectiveOptions),
 			]),
+			m(
+				"button.action-button.menu-exit-button",
+				{ onclick: () => (storage.menu_open = false) },
+				"Exit"
+			),
 		]);
 	},
 };

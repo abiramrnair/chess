@@ -14,6 +14,7 @@ import blackKing from "../assets/pieces/bking.png";
 import boardHelpers from "../helpers/board-helpers";
 import moveGenerator from "../logic/move-generator";
 import bot from "../bot/bot";
+import m from "mithril";
 
 export const boardSquareModel = {
 	getSquarePieceImage: (i, j) => {
@@ -67,7 +68,6 @@ export const boardSquareModel = {
 			storage.selected_square_coord = null;
 			storage.legal_squares = [];
 		} else {
-			let possibleMoves = [];
 			if (storage.legal_squares.includes(boardHelpers.stringifyCoord([i, j]))) {
 				if (
 					storage.board[storage.selected_square_coord[0]][
@@ -93,12 +93,7 @@ export const boardSquareModel = {
 					);
 					storage.selected_square_coord = null;
 					storage.legal_squares = [];
-					possibleMoves = moveGenerator.getMoves();
-				}
-				if (storage.bot_players[storage.player_turn] && possibleMoves.length) {
-					setTimeout(() => {
-						bot.makeBotMove(storage.bot_depth);
-					}, 500);
+					moveGenerator.getMoves();
 				}
 			}
 		}
